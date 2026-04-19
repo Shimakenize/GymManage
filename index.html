@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <title>GymManagement</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; margin: 0; background: #0f1419; color: #e5e7eb; }
+    .auth-banner { padding: 10px 20px; background: #422006; color: #fde68a; font-size: 0.9rem; }
+    .auth-banner .relogin-inner { max-width: 560px; margin: 0 auto; line-height: 1.5; }
+    .auth-banner .relogin-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .app-header { background: #0b1220; color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #233041; }
+    .app-header-logo { height: 36px; width: auto; margin-right: 10px; }
+    .header-main { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .header-title-line { font-size: 1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-title-line .ver { font-weight: 600; opacity: 0.9; font-size: 0.92rem; }
+    .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: 0; max-width: 55%; }
+    .header-user { font-size: 0.72rem; color: #93c5fd; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+    .view-tabs { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0; background: #111827; border-bottom: 1px solid #233041; padding: 0 8px; }
+    .view-tab { background: transparent; border: none; color: #94a3b8; padding: 11px 14px; font-size: 0.88rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; font-family: inherit; }
+    .view-tab:hover { color: #e5e7eb; }
+    .view-tab.active { color: #fff; border-bottom-color: #2ed3c6; font-weight: 600; }
+    .meta-strip { padding: 6px 16px; font-size: 0.72rem; color: #9ccce6; background: #0b1220; border-bottom: 1px solid #233041; }
+    .panel { padding: 14px 16px; max-width: 720px; margin: 0 auto; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 0.82rem; color: #9ccce6; margin-bottom: 4px; }
+    .field input, .field textarea { width: 100%; max-width: 420px; padding: 8px 10px; border: 1px solid #2b4258; border-radius: 8px; background: #0b1220; color: #e5e7eb; font-size: 0.92rem; }
+    .field textarea { min-height: 64px; max-width: 100%; }
+    .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.92rem; font-family: inherit; }
+    .btn-primary { background: #2ed3c6; color: #06212b; font-weight: 700; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .dash-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .dash-card { background: #111827; border: 1px solid #233041; border-radius: 10px; padding: 12px; }
+    .dash-card .k { font-size: 0.72rem; color: #94a3b8; }
+    .dash-card .v { font-size: 1.15rem; font-weight: 700; color: #e5e7eb; margin-top: 4px; }
+    .table-wrap { overflow-x: auto; }
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    .data-table th, .data-table td { border: 1px solid #233041; padding: 8px 10px; text-align: left; }
+    .data-table th { background: #0b1220; color: #9ccce6; font-weight: 600; }
+    .empty { color: #94a3b8; padding: 24px; text-align: center; }
+    .msg-ok { color: #6ee7b7; font-size: 0.86rem; margin-top: 8px; }
+    .msg-err { color: #fca5a5; font-size: 0.86rem; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div id="auth-gate" class="auth-banner" style="display:none;"></div>
+  <header class="app-header">
+    <img class="app-header-logo" src="./app_logo.jpg" alt="" width="36" height="36" />
+    <div class="header-main">
+      <div class="header-title-line">GymManagement <span class="ver" id="verInline"></span></div>
+      <div class="header-right">
+        <div class="header-user" id="headerUser"></div>
+      </div>
+    </div>
+  </header>
+  <div class="meta-strip" id="metaStrip">読み込み中…</div>
+  <nav class="view-tabs">
+    <button type="button" class="view-tab active" data-view="today">本日</button>
+    <button type="button" class="view-tab" data-view="dash">ダッシュボード</button>
+  </nav>
+
+  <main id="viewToday" class="panel">
+    <h2 style="font-size:1rem;margin:0 0 12px;color:#9ccce6;">本日の記録</h2>
+    <form id="formToday">
+      <div class="field">
+        <label for="visitDate">日付</label>
+        <input type="date" id="visitDate" name="visit_date" required />
+      </div>
+      <div class="field">
+        <label for="timeStart">開始（例 09:30）</label>
+        <input type="time" id="timeStart" name="time_start" required />
+      </div>
+      <div class="field">
+        <label for="timeEnd">終了</label>
+        <input type="time" id="timeEnd" name="time_end" required />
+      </div>
+      <div class="field">
+        <label for="aerobic">有酸素（分）</label>
+        <input type="number" id="aerobic" name="aerobic_minutes" min="0" step="1" value="0" />
+      </div>
+      <div class="field">
+        <label for="tr1">TR1 エリア人数</label>
+        <input type="number" id="tr1" name="tr1_people" min="0" step="1" value="0" />
+      </div>
+      <div class="field">
+        <label for="tr2">TR2 エリア人数</label>
+        <input type="number" id="tr2" name="tr2_people" min="0" step="1" value="0" />
+      </div>
+      <div class="field">
+        <label for="notes">メモ</label>
+        <textarea id="notes" name="notes" rows="2"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" id="btnSave">保存</button>
+      <div id="formMsg"></div>
+    </form>
+  </main>
+
+  <main id="viewDash" class="panel" style="display:none;">
+    <h2 style="font-size:1rem;margin:0 0 12px;color:#9ccce6;">直近30日</h2>
+    <div class="dash-cards" id="dashCards"></div>
+    <div class="table-wrap">
+      <table class="data-table" id="tblVisits">
+        <thead>
+          <tr>
+            <th>日付</th><th>開始</th><th>終了</th><th>滞在(分)</th><th>有酸素</th><th>TR1</th><th>TR2</th><th>メモ</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+    <div id="dashEmpty" class="empty" style="display:none;">データがありません</div>
+  </main>
+
+  <script>
+    window.__CONFIG_URL__ = '__GAS_CONFIG_URL__';
+    window.__API_BASE__ = window.__CONFIG_URL__;
+    window.__LIFF_ID__ = '';
+    window.__APP_VERSION__ = '';
+
+    function todayJstYmd() {
+      var parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      var y = '', m = '', d = '';
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].type === 'year') y = parts[i].value;
+        if (parts[i].type === 'month') m = parts[i].value;
+        if (parts[i].type === 'day') d = parts[i].value;
+      }
+      return y + '-' + m + '-' + d;
+    }
+
+    function minutesBetweenDay(timeStart, timeEnd, ymd) {
+      var a = String(timeStart || '').trim();
+      var b = String(timeEnd || '').trim();
+      var ma = a.match(/^(\d{1,2}):(\d{2})$/);
+      var mb = b.match(/^(\d{1,2}):(\d{2})$/);
+      if (!ma || !mb) return '';
+      var d0 = new Date(ymd + 'T' + ('0' + ma[1]).slice(-2) + ':' + ma[2] + ':00+09:00');
+      var d1 = new Date(ymd + 'T' + ('0' + mb[1]).slice(-2) + ':' + mb[2] + ':00+09:00');
+      if (isNaN(d0.getTime()) || isNaN(d1.getTime())) return '';
+      var diff = (d1 - d0) / 60000;
+      if (diff < 0) diff += 24 * 60;
+      return Math.round(diff);
+    }
+
+    async function fetchConfig() {
+      var res = await fetch(window.__CONFIG_URL__ + '?_path=config');
+      var c = await res.json();
+      window.__LIFF_ID__ = c.liff_id || '';
+      window.__APP_VERSION__ = c.version || '';
+    }
+
+    function applyVersionLabel() {
+      var ver = String(window.__APP_VERSION__ || '').trim();
+      var verText = ver ? ('(v' + ver + ')') : '';
+      document.getElementById('verInline').textContent = verText;
+      document.title = 'GymManagement' + (verText ? ' ' + verText : '');
+    }
+
+    var DEV_TOKEN = new URLSearchParams(location.search).get('dev') || '';
+    var IS_DEV_BYPASS = DEV_TOKEN.length > 0;
+    var lineUserId = '';
+
+    function apiUrl(path) {
+      var b = (window.__API_BASE__ || '').replace(/\/$/, '');
+      var parts = path.split('?');
+      var url = b + '?_path=' + encodeURIComponent(parts[0]);
+      if (parts[1]) url += '&' + parts[1];
+      return url;
+    }
+
+    function loadScript(src) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = function() { reject(new Error('script load failed')); };
+        document.head.appendChild(s);
+      });
+    }
+
+    async function fetchWithAuth(path, options) {
+      var o = options || {};
+      var method = (o.method || 'GET').toUpperCase();
+      if (method === 'POST' && o.body) {
+        var b = JSON.parse(o.body);
+        b.userId = lineUserId;
+        b._path = path.split('?')[0];
+        if (IS_DEV_BYPASS) b.dev_token = DEV_TOKEN;
+        o = Object.assign({}, o, { body: JSON.stringify(b) });
+        var q = IS_DEV_BYPASS
+          ? '&dev_token=' + encodeURIComponent(DEV_TOKEN) + '&userId=dev-claude'
+          : '&userId=' + encodeURIComponent(lineUserId || '');
+        return fetch(window.__API_BASE__, Object.assign({}, o, { method: 'POST' })).catch(function() {
+          return fetch(apiUrl(path) + q, o);
+        });
+      }
+      var q = IS_DEV_BYPASS
+        ? '&dev_token=' + encodeURIComponent(DEV_TOKEN) + '&userId=dev-claude'
+        : '&userId=' + encodeURIComponent(lineUserId || '');
+      return fetch(apiUrl(path) + q, o);
+    }
+
+    async function apiMe() {
+      var r = await fetchWithAuth('auth/me');
+      return r.json();
+    }
+
+    async function apiListVisits(from, to) {
+      var r = await fetchWithAuth('api/gym/visits?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to));
+      return r.json();
+    }
+
+    async function apiSaveVisit(payload) {
+      var r = await fetchWithAuth('api/gym/visits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ _path: 'api/gym/visits' }, payload))
+      });
+      return r.json();
+    }
+
+    function setMeta(s) {
+      document.getElementById('metaStrip').textContent = s;
+    }
+
+    function switchView(name) {
+      var tabs = document.querySelectorAll('.view-tab');
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.toggle('active', tabs[i].getAttribute('data-view') === name);
+      }
+      document.getElementById('viewToday').style.display = name === 'today' ? 'block' : 'none';
+      document.getElementById('viewDash').style.display = name === 'dash' ? 'block' : 'none';
+      if (name === 'dash') loadDashboard();
+    }
+
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+
+    async function loadDashboard() {
+      var to = todayJstYmd();
+      var from = (function() {
+        var parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+        }).formatToParts(new Date(Date.now() - 30 * 86400000));
+        var y = '', m = '', dd = '';
+        for (var i = 0; i < parts.length; i++) {
+          if (parts[i].type === 'year') y = parts[i].value;
+          if (parts[i].type === 'month') m = parts[i].value;
+          if (parts[i].type === 'day') dd = parts[i].value;
+        }
+        return y + '-' + m + '-' + dd;
+      })();
+
+      var j;
+      try {
+        j = await apiListVisits(from, to);
+      } catch (e) {
+        document.getElementById('dashEmpty').style.display = 'block';
+        return;
+      }
+      if (j.error || !j.ok || !j.visits) {
+        document.getElementById('dashEmpty').style.display = 'block';
+        document.getElementById('tblBody').innerHTML = '';
+        document.getElementById('dashCards').innerHTML = '';
+        return;
+      }
+      var rows = j.visits;
+      document.getElementById('dashEmpty').style.display = rows.length ? 'none' : 'block';
+      var sumStay = 0, sumAero = 0, sumTr1 = 0, sumTr2 = 0, n = rows.length;
+      var tb = '';
+      for (var k = 0; k < rows.length; k++) {
+        var v = rows[k];
+        var ymd = String(v.visit_date || '').slice(0, 10);
+        var stay = minutesBetweenDay(v.time_start, v.time_end, ymd);
+        if (typeof stay === 'number') sumStay += stay;
+        sumAero += parseInt(v.aerobic_minutes, 10) || 0;
+        sumTr1 += parseInt(v.tr1_people, 10) || 0;
+        sumTr2 += parseInt(v.tr2_people, 10) || 0;
+        tb += '<tr><td>' + esc(ymd) + '</td><td>' + esc(v.time_start) + '</td><td>' + esc(v.time_end) + '</td><td>' + esc(stay) +
+          '</td><td>' + esc(v.aerobic_minutes) + '</td><td>' + esc(v.tr1_people) + '</td><td>' + esc(v.tr2_people) + '</td><td>' + esc(v.notes) + '</td></tr>';
+      }
+      document.getElementById('tblBody').innerHTML = tb;
+      var avgTr1 = n ? (sumTr1 / n).toFixed(1) : '0';
+      var avgTr2 = n ? (sumTr2 / n).toFixed(1) : '0';
+      document.getElementById('dashCards').innerHTML =
+        '<div class="dash-card"><div class="k">記録日数</div><div class="v">' + n + '</div></div>' +
+        '<div class="dash-card"><div class="k">滞在合計(分)</div><div class="v">' + sumStay + '</div></div>' +
+        '<div class="dash-card"><div class="k">有酸素合計(分)</div><div class="v">' + sumAero + '</div></div>' +
+        '<div class="dash-card"><div class="k">TR1 平均</div><div class="v">' + avgTr1 + '</div></div>' +
+        '<div class="dash-card"><div class="k">TR2 平均</div><div class="v">' + avgTr2 + '</div></div>';
+    }
+
+    document.getElementById('visitDate').value = todayJstYmd();
+
+    document.getElementById('formToday').addEventListener('submit', async function(ev) {
+      ev.preventDefault();
+      var msg = document.getElementById('formMsg');
+      msg.innerHTML = '';
+      var btn = document.getElementById('btnSave');
+      btn.disabled = true;
+      try {
+        var payload = {
+          visit_date: document.getElementById('visitDate').value,
+          time_start: document.getElementById('timeStart').value.slice(0, 5),
+          time_end: document.getElementById('timeEnd').value.slice(0, 5),
+          aerobic_minutes: parseInt(document.getElementById('aerobic').value, 10) || 0,
+          tr1_people: parseInt(document.getElementById('tr1').value, 10) || 0,
+          tr2_people: parseInt(document.getElementById('tr2').value, 10) || 0,
+          notes: document.getElementById('notes').value
+        };
+        var r = await apiSaveVisit(payload);
+        if (r.error) throw new Error(r.error);
+        msg.innerHTML = '<span class="msg-ok">保存しました</span>';
+      } catch (e) {
+        msg.innerHTML = '<span class="msg-err">' + esc(String(e.message || e)) + '</span>';
+      }
+      btn.disabled = false;
+    });
+
+    document.querySelectorAll('.view-tab').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        switchView(btn.getAttribute('data-view'));
+      });
+    });
+
+    (async function main() {
+      if (!window.__CONFIG_URL__ || window.__CONFIG_URL__.indexOf('__GAS_CONFIG') >= 0) {
+        setMeta('GAS の Web アプリ URL を index.html の __GAS_CONFIG_URL__ に設定してください');
+        return;
+      }
+      await fetchConfig();
+      applyVersionLabel();
+      await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
+      var liffId = (window.__LIFF_ID__ || '').trim();
+      if (!liffId) {
+        setMeta('LIFF_ID 未設定（GAS config）');
+        return;
+      }
+      await liff.init({ liffId: liffId });
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: location.href.split('#')[0] });
+        return;
+      }
+      var prof = await liff.getProfile();
+      lineUserId = prof.userId;
+      document.getElementById('headerUser').textContent = prof.displayName || lineUserId;
+      var me = await apiMe();
+      if (!me.ok || !me.access_granted) {
+        setMeta('この LINE アカウントは未許可です（GAS の ALLOWED_USER_IDS に userId を追加）');
+        return;
+      }
+      setMeta('接続済み · ' + todayJstYmd());
+    })();
+  </script>
+</body>
+</html>
