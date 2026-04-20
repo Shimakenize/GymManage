@@ -155,7 +155,7 @@
 
     function applyVersionLabel() {
       var ver = String(window.__APP_VERSION__ || '').trim();
-      var verText = ver ? ('(v' + ver + ')') : '';
+      var verText = ver ? ('v' + ver) : '';
       document.getElementById('verInline').textContent = verText;
       document.title = 'GymManagement' + (verText ? ' ' + verText : '');
     }
