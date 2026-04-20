@@ -215,12 +215,24 @@
     }
 
     async function apiSaveVisit(payload) {
-      var r = await fetchWithAuth('api/gym/visits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.assign({ _path: 'api/gym/visits' }, payload))
-      });
-      return r.json();
+      try {
+        var r = await fetchWithAuth('api/gym/visits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ _path: 'api/gym/visits' }, payload))
+        });
+        return r.json();
+      } catch (postErr) {
+        // Some environments block cross-origin JSON POST preflight.
+        // Fallback to GET endpoint to keep LIFF usable.
+        var q = new URLSearchParams();
+        var src = payload || {};
+        Object.keys(src).forEach(function(k) {
+          q.set(k, src[k] == null ? '' : String(src[k]));
+        });
+        var r2 = await fetchWithAuth('api/gym/visits/save?' + q.toString());
+        return r2.json();
+      }
     }
 
     function setMeta(s) {
