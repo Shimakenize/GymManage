@@ -77,7 +77,7 @@
         <input type="time" id="timeEnd" name="time_end" required />
       </div>
       <div class="field">
-        <label for="aerobic">有酸素（分）</label>
+        <label for="aerobic">有酸素エリア人数</label>
         <input type="number" id="aerobic" name="aerobic_minutes" min="0" step="1" value="0" />
       </div>
       <div class="field">
@@ -104,7 +104,7 @@
       <table class="data-table" id="tblVisits">
         <thead>
           <tr>
-            <th>日付</th><th>開始</th><th>終了</th><th>滞在(分)</th><th>有酸素</th><th>TR1</th><th>TR2</th><th>メモ</th>
+            <th>日付</th><th>開始</th><th>終了</th><th>滞在(分)</th><th>有酸素人数</th><th>TR1</th><th>TR2</th><th>メモ</th>
           </tr>
         </thead>
         <tbody id="tblBody"></tbody>
@@ -301,12 +301,14 @@
       document.getElementById('tblBody').innerHTML = tb;
       var avgTr1 = n ? (sumTr1 / n).toFixed(1) : '0';
       var avgTr2 = n ? (sumTr2 / n).toFixed(1) : '0';
+      var avgCostText = n ? ('¥' + Math.round(7678 / n).toLocaleString('ja-JP')) : '-';
       document.getElementById('dashCards').innerHTML =
         '<div class="dash-card"><div class="k">記録日数</div><div class="v">' + n + '</div></div>' +
         '<div class="dash-card"><div class="k">滞在合計(分)</div><div class="v">' + sumStay + '</div></div>' +
-        '<div class="dash-card"><div class="k">有酸素合計(分)</div><div class="v">' + sumAero + '</div></div>' +
+        '<div class="dash-card"><div class="k">有酸素人数合計</div><div class="v">' + sumAero + '</div></div>' +
         '<div class="dash-card"><div class="k">TR1 平均</div><div class="v">' + avgTr1 + '</div></div>' +
-        '<div class="dash-card"><div class="k">TR2 平均</div><div class="v">' + avgTr2 + '</div></div>';
+        '<div class="dash-card"><div class="k">TR2 平均</div><div class="v">' + avgTr2 + '</div></div>' +
+        '<div class="dash-card"><div class="k">1回当たりの金額</div><div class="v">' + avgCostText + '</div></div>';
     }
 
     document.getElementById('visitDate').value = todayJstYmd();
