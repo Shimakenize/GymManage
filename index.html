@@ -345,32 +345,37 @@
     });
 
     (async function main() {
-      if (!window.__CONFIG_URL__ || window.__CONFIG_URL__.indexOf('__GAS_CONFIG') >= 0) {
-        setMeta('GAS の Web アプリ URL を index.html の __GAS_CONFIG_URL__ に設定してください');
-        return;
+      try {
+        if (!window.__CONFIG_URL__ || window.__CONFIG_URL__.indexOf('__GAS_CONFIG') >= 0) {
+          setMeta('GAS の Web アプリ URL を index.html の __GAS_CONFIG_URL__ に設定してください');
+          return;
+        }
+        await fetchConfig();
+        applyVersionLabel();
+        await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
+        var liffId = (window.__LIFF_ID__ || '').trim();
+        if (!liffId) {
+          setMeta('LIFF_ID 未設定（GAS config）');
+          return;
+        }
+        await liff.init({ liffId: liffId });
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: location.href.split('#')[0] });
+          return;
+        }
+        var prof = await liff.getProfile();
+        lineUserId = prof.userId;
+        document.getElementById('headerUser').textContent = prof.displayName || lineUserId;
+        var me = await apiMe();
+        if (!me.ok || !me.access_granted) {
+          setMeta('この LINE アカウントは未許可です（GAS の ALLOWED_USER_IDS に userId を追加）');
+          return;
+        }
+        setMeta('接続済み · ' + todayJstYmd());
+      } catch (e) {
+        var em = String((e && e.message) ? e.message : e || '').trim();
+        setMeta('初期化エラー: ' + (em || 'unknown'));
       }
-      await fetchConfig();
-      applyVersionLabel();
-      await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
-      var liffId = (window.__LIFF_ID__ || '').trim();
-      if (!liffId) {
-        setMeta('LIFF_ID 未設定（GAS config）');
-        return;
-      }
-      await liff.init({ liffId: liffId });
-      if (!liff.isLoggedIn()) {
-        liff.login({ redirectUri: location.href.split('#')[0] });
-        return;
-      }
-      var prof = await liff.getProfile();
-      lineUserId = prof.userId;
-      document.getElementById('headerUser').textContent = prof.displayName || lineUserId;
-      var me = await apiMe();
-      if (!me.ok || !me.access_granted) {
-        setMeta('この LINE アカウントは未許可です（GAS の ALLOWED_USER_IDS に userId を追加）');
-        return;
-      }
-      setMeta('接続済み · ' + todayJstYmd());
     })();
   </script>
 </body>
