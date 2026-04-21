@@ -8,16 +8,13 @@
   <style>
     * { box-sizing: border-box; }
     body { font-family: sans-serif; margin: 0; background: #0f1419; color: #e5e7eb; }
-    .auth-banner { padding: 10px 20px; background: #422006; color: #fde68a; font-size: 0.9rem; }
     .app-header { background: #0b1220; color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #233041; }
     .app-header-logo { height: 36px; width: auto; margin-right: 10px; }
-    .header-main { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .header-title-line { font-size: 1rem; font-weight: 700; white-space: nowrap; }
-    .header-title-line .ver { font-weight: 600; opacity: 0.9; font-size: 0.92rem; }
-    .header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .header-user { font-size: 0.72rem; color: #93c5fd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+    .header-main { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; }
+    .header-title-line { font-size: 1rem; font-weight: 700; }
+    .ver { font-weight: 600; opacity: 0.9; font-size: 0.92rem; }
+    .header-user { font-size: 0.72rem; color: #93c5fd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px; }
     .meta-strip { padding: 6px 16px; font-size: 0.72rem; color: #9ccce6; background: #0b1220; border-bottom: 1px solid #233041; }
-    /* Tab bar */
     .tab-bar { display: flex; align-items: center; background: #111827; border-bottom: 1px solid #233041; padding: 0 8px; }
     .view-tab { background: transparent; border: none; color: #94a3b8; padding: 11px 14px; font-size: 0.88rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; font-family: inherit; align-self: stretch; }
     .view-tab:hover { color: #e5e7eb; }
@@ -25,64 +22,68 @@
     .tab-spacer { flex: 1; }
     .btn-new { background: #2ed3c6; color: #06212b; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
     .btn-new:disabled { opacity: 0.55; cursor: not-allowed; }
-    /* Panels */
-    .panel { padding: 14px 16px; max-width: 720px; margin: 0 auto; }
-    /* Edit panel */
-    .edit-panel { background: #111827; border: 1px solid #2ed3c6; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-    .edit-panel-title { font-size: 0.82rem; color: #2ed3c6; font-weight: 600; margin-bottom: 12px; }
-    .edit-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-    .edit-field { flex: 1; min-width: 100px; }
-    .edit-field label { display: block; font-size: 0.75rem; color: #9ccce6; margin-bottom: 3px; }
-    .edit-field input[type=date],
-    .edit-field input[type=time] { width: 100%; padding: 7px 9px; border: 1px solid #2b4258; border-radius: 7px; background: #0b1220; color: #e5e7eb; font-size: 0.9rem; font-family: inherit; }
-    .edit-field textarea { width: 100%; padding: 7px 9px; border: 1px solid #2b4258; border-radius: 7px; background: #0b1220; color: #e5e7eb; font-size: 0.9rem; font-family: inherit; min-height: 56px; resize: vertical; }
-    .count-row { margin-bottom: 10px; }
-    .count-row label { display: block; font-size: 0.75rem; color: #9ccce6; margin-bottom: 4px; }
-    .count-btns { display: flex; flex-wrap: wrap; gap: 4px; }
-    .count-btn { width: 30px; height: 30px; border: 1px solid #2b4258; border-radius: 6px; background: #0b1220; color: #94a3b8; font-size: 0.82rem; cursor: pointer; font-family: inherit; padding: 0; }
-    .count-btn.active { background: #2ed3c6; color: #06212b; border-color: #2ed3c6; font-weight: 700; }
-    .club-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 0.88rem; color: #e5e7eb; cursor: pointer; user-select: none; }
-    .club-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #2ed3c6; }
-    .ts-btns { display: flex; gap: 8px; margin-bottom: 10px; }
+    .panel { padding: 12px 12px; max-width: 720px; margin: 0 auto; }
+    /* Records table */
+    .table-wrap { overflow-x: auto; }
+    table.rec-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .rec-table th, .rec-table td { border: 1px solid #1e2d3d; padding: 7px 6px; text-align: left; white-space: nowrap; }
+    .rec-table th { background: #0b1220; color: #9ccce6; font-weight: 600; font-size: 0.78rem; }
+    .rec-table tbody tr.row-saving { opacity: 0.55; }
+    .rec-table tbody tr.row-saving td { pointer-events: none; }
+    .cell-edit { cursor: pointer; }
+    .cell-edit:hover { background: #1a2d3e; }
+    .cell-edit:active { background: #1e3040; }
+    .saving-txt { font-size: 0.72rem; color: #9ccce6; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .club-on { color: #93c5fd; font-weight: 700; }
+    .club-off { color: #4b5563; }
+    .notes-val { color: #94a3b8; max-width: 70px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
+    .btn-delete { background: transparent; border: 1px solid #374151; color: #ef4444; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; cursor: pointer; font-family: inherit; }
+    .btn-delete:hover { background: #1c0a0a; border-color: #ef4444; }
+    .btn-delete:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* Popup */
+    .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    .popup-box { background: #111827; border: 1px solid #2b4258; border-radius: 14px; padding: 20px 20px 16px; width: 90%; max-width: 320px; }
+    .popup-title { font-size: 0.88rem; color: #2ed3c6; font-weight: 600; margin-bottom: 16px; text-align: center; }
+    .popup-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
     .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-family: inherit; }
     .btn-primary { background: #2ed3c6; color: #06212b; font-weight: 700; }
     .btn-ghost { background: transparent; border: 1px solid #2b4258; color: #94a3b8; }
-    .btn-ts { background: #1e3a4a; border: 1px solid #2b4258; color: #93c5fd; }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .edit-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    /* Records table */
-    .table-wrap { overflow-x: auto; }
-    table.data-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    .data-table th, .data-table td { border: 1px solid #1e2d3d; padding: 7px 8px; text-align: left; }
-    .data-table th { background: #0b1220; color: #9ccce6; font-weight: 600; white-space: nowrap; }
-    .data-table tbody tr { cursor: pointer; }
-    .data-table tbody tr:hover { background: #131f2e; }
-    .data-table tbody tr.selected { background: #0d2535; }
-    .club-tag { display: inline-block; background: #1e3a4a; color: #93c5fd; border-radius: 4px; padding: 1px 5px; font-size: 0.72rem; font-weight: 600; }
-    .notes-cell { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #94a3b8; }
-    .btn-del { background: none; border: none; color: #6b7280; cursor: pointer; padding: 2px 5px; font-size: 1rem; border-radius: 4px; line-height: 1; }
-    .btn-del:hover { color: #ef4444; background: #1e2d3d; }
+    /* Time picker */
+    .time-sel-row { display: flex; align-items: center; gap: 10px; justify-content: center; padding: 4px 0; }
+    .time-sel { font-size: 1.6rem; background: #0b1220; border: 1px solid #2b4258; color: #e5e7eb; border-radius: 10px; padding: 10px 6px; width: 80px; text-align: center; text-align-last: center; cursor: pointer; }
+    .time-colon { font-size: 1.6rem; color: #e5e7eb; font-weight: 700; }
+    /* Count popup */
+    .count-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .pop-cnt-btn { height: 44px; border: 1px solid #2b4258; border-radius: 8px; background: #0b1220; color: #94a3b8; font-size: 1.05rem; cursor: pointer; font-family: inherit; }
+    .pop-cnt-btn.sel { background: #2ed3c6; color: #06212b; font-weight: 700; border-color: #2ed3c6; }
+    /* Club toggle */
+    .club-toggle-row { display: flex; gap: 12px; }
+    .club-toggle-btn { flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #2b4258; background: #0b1220; color: #94a3b8; font-size: 1rem; cursor: pointer; font-family: inherit; text-align: center; }
+    .club-toggle-btn.sel { background: #1e3a4a; color: #93c5fd; border-color: #93c5fd; font-weight: 700; }
+    /* Memo popup */
+    .popup-textarea { width: 100%; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 0.9rem; padding: 10px; font-family: inherit; min-height: 90px; resize: vertical; }
+    /* Date input in popup */
+    .popup-date-input { width: 100%; padding: 12px; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 1rem; text-align: center; }
     /* Dashboard */
     .dash-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .dash-cards { display: flex; flex-direction: column; gap: 0; }
-    .dash-card { flex: 1; background: #111827; border: 1px solid #233041; border-radius: 10px; padding: 12px; min-width: 0; }
-    .dash-card .k { font-size: 0.72rem; color: #94a3b8; }
-    .dash-card .v { font-size: 1.15rem; font-weight: 700; color: #e5e7eb; margin-top: 4px; }
+    .dash-card { flex: 1; min-width: 0; border: 1px solid; border-radius: 10px; padding: 12px; background: #111827; }
+    .dash-card .k { font-size: 0.7rem; }
+    .dash-card .v { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+    .dc-blue  { border-color: #1d4ed8; }  .dc-blue  .k { color: #93c5fd; } .dc-blue  .v { color: #bfdbfe; }
+    .dc-green { border-color: #065f46; }  .dc-green .k { color: #6ee7b7; } .dc-green .v { color: #a7f3d0; }
+    .dc-purple{ border-color: #4c1d95; }  .dc-purple.k { color: #c4b5fd; } .dc-purple .v { color: #ddd6fe; }
+    .dc-amber { border-color: #78350f; }  .dc-amber .k { color: #fcd34d; } .dc-amber .v { color: #fde68a; }
     .empty { color: #94a3b8; padding: 24px; text-align: center; }
     .section-title { font-size: 0.9rem; font-weight: 600; color: #9ccce6; margin: 0 0 12px; }
-    .msg-ok { color: #6ee7b7; font-size: 0.86rem; }
-    .msg-err { color: #fca5a5; font-size: 0.86rem; }
   </style>
 </head>
 <body>
-  <div id="auth-gate" class="auth-banner" style="display:none;"></div>
   <header class="app-header">
     <img class="app-header-logo" src="./app_logo.jpg" alt="" width="36" height="36" />
     <div class="header-main">
       <div class="header-title-line">Gym <span class="ver" id="verInline"></span></div>
-      <div class="header-right">
-        <div class="header-user" id="headerUser"></div>
-      </div>
+      <div class="header-user" id="headerUser"></div>
     </div>
   </header>
   <div class="meta-strip" id="metaStrip">読み込み中…</div>
@@ -94,73 +95,37 @@
     <button type="button" class="btn-new" id="btnNew">新規</button>
   </div>
 
-  <!-- Records view -->
   <main id="viewRecords" class="panel">
-    <div id="editPanel" class="edit-panel" style="display:none;">
-      <div class="edit-panel-title" id="editPanelTitle">記録を編集</div>
-      <div class="edit-row">
-        <div class="edit-field">
-          <label>日付</label>
-          <input type="date" id="editDate" />
-        </div>
-        <div class="edit-field">
-          <label>開始</label>
-          <input type="time" id="editStart" />
-        </div>
-        <div class="edit-field">
-          <label>終了</label>
-          <input type="time" id="editEnd" />
-        </div>
-      </div>
-      <div class="count-row">
-        <label>有酸素人数</label>
-        <div class="count-btns" id="cntAero"></div>
-      </div>
-      <div class="count-row">
-        <label>TR1 人数</label>
-        <div class="count-btns" id="cntTr1"></div>
-      </div>
-      <div class="count-row">
-        <label>TR2 人数</label>
-        <div class="count-btns" id="cntTr2"></div>
-      </div>
-      <div class="edit-field" style="margin-bottom:10px;">
-        <label>メモ</label>
-        <textarea id="editNotes" rows="2"></textarea>
-      </div>
-      <label class="club-row">
-        <input type="checkbox" id="editClub" />
-        快活CLUB
-      </label>
-      <div class="ts-btns">
-        <button type="button" class="btn btn-ts" id="btnStampEdit">編集</button>
-        <button type="button" class="btn btn-ts" id="btnStampEnd">終了</button>
-      </div>
-      <div class="edit-actions">
-        <button type="button" class="btn btn-primary" id="btnSaveEdit">保存</button>
-        <button type="button" class="btn btn-ghost" id="btnCancelEdit">キャンセル</button>
-        <span id="editMsg"></span>
-      </div>
-    </div>
     <div id="recEmpty" class="empty" style="display:none;">記録がありません</div>
-    <div class="table-wrap">
-      <table class="data-table" id="tblRecords" style="display:none;">
+    <div class="table-wrap" id="tableWrap" style="display:none;">
+      <table class="rec-table">
         <thead>
           <tr>
-            <th>日付</th><th>開始〜終了</th><th>有酸</th><th>TR1</th><th>TR2</th><th>C</th><th>メモ</th><th></th>
+            <th>日付</th><th>開始</th><th>終了</th><th>有酸</th><th>TR1</th><th>TR2</th><th>Club</th><th>メモ</th><th></th>
           </tr>
         </thead>
-        <tbody id="tblRecordsBody"></tbody>
+        <tbody id="tblBody"></tbody>
       </table>
     </div>
   </main>
 
-  <!-- Dashboard view -->
   <main id="viewDash" class="panel" style="display:none;">
     <p class="section-title">直近30日</p>
-    <div class="dash-cards" id="dashCards"></div>
+    <div id="dashCards"></div>
     <div id="dashEmpty" class="empty" style="display:none;">データがありません</div>
   </main>
+
+  <!-- Popup -->
+  <div id="popupOverlay" class="popup-overlay" style="display:none;">
+    <div class="popup-box">
+      <div class="popup-title" id="popupTitle"></div>
+      <div id="popupContent"></div>
+      <div class="popup-actions" id="popupActions">
+        <button id="popupCancel" class="btn btn-ghost">キャンセル</button>
+        <button id="popupOk" class="btn btn-primary">OK</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     window.__CONFIG_URL__ = 'https://script.google.com/macros/s/AKfycbyHavAxE_M6X8irQFverVbe0FKbubaYtQ5jP-zd3r7bRzEXW6aKTjE4oLrT3VBPuLew/exec';
@@ -170,484 +135,405 @@
 
     // ---- Utilities ----
     function todayJstYmd() {
-      var parts = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
-      }).formatToParts(new Date());
-      var y = '', m = '', d = '';
-      for (var i = 0; i < parts.length; i++) {
-        if (parts[i].type === 'year') y = parts[i].value;
-        if (parts[i].type === 'month') m = parts[i].value;
-        if (parts[i].type === 'day') d = parts[i].value;
-      }
-      return y + '-' + m + '-' + d;
+      var p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      var y='',m='',d='';
+      p.forEach(function(x){ if(x.type==='year')y=x.value; if(x.type==='month')m=x.value; if(x.type==='day')d=x.value; });
+      return y+'-'+m+'-'+d;
     }
-
     function nowJstHm() {
-      var d = new Date();
-      var parts = new Intl.DateTimeFormat('ja-JP', {
-        timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hour12: false
-      }).formatToParts(d);
-      var h = '', m = '';
-      for (var i = 0; i < parts.length; i++) {
-        if (parts[i].type === 'hour') h = parts[i].value.padStart(2, '0');
-        if (parts[i].type === 'minute') m = parts[i].value.padStart(2, '0');
-      }
-      return h + ':' + m;
+      var p = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+      var h='',m='';
+      p.forEach(function(x){ if(x.type==='hour')h=x.value.padStart(2,'0'); if(x.type==='minute')m=x.value.padStart(2,'0'); });
+      return h+':'+m;
     }
-
+    function addMinutes(hm, mins) {
+      var p=String(hm||'00:00').split(':');
+      var t=parseInt(p[0])*60+parseInt(p[1])+mins;
+      t=((t%1440)+1440)%1440;
+      return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+    }
     function minutesBetween(ts, te, ymd) {
-      var ma = String(ts || '').match(/^(\d{1,2}):(\d{2})$/);
-      var mb = String(te || '').match(/^(\d{1,2}):(\d{2})$/);
-      if (!ma || !mb) return null;
-      var d0 = new Date(ymd + 'T' + ma[1].padStart(2,'0') + ':' + ma[2] + ':00+09:00');
-      var d1 = new Date(ymd + 'T' + mb[1].padStart(2,'0') + ':' + mb[2] + ':00+09:00');
-      if (isNaN(d0) || isNaN(d1)) return null;
-      var diff = (d1 - d0) / 60000;
-      if (diff < 0) diff += 1440;
-      return Math.round(diff);
+      var ma=String(ts||'').match(/^(\d{1,2}):(\d{2})$/);
+      var mb=String(te||'').match(/^(\d{1,2}):(\d{2})$/);
+      if(!ma||!mb) return null;
+      var d0=new Date(ymd+'T'+ma[1].padStart(2,'0')+':'+ma[2]+':00+09:00');
+      var d1=new Date(ymd+'T'+mb[1].padStart(2,'0')+':'+mb[2]+':00+09:00');
+      if(isNaN(d0)||isNaN(d1)) return null;
+      var diff=(d1-d0)/60000;
+      return Math.round(diff<0?diff+1440:diff);
     }
-
-    function esc(s) {
-      var d = document.createElement('div');
-      d.textContent = s == null ? '' : String(s);
-      return d.innerHTML;
+    function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+    function hmToSel(hm) {
+      var p=String(hm||'').split(':');
+      var h=parseInt(p[0])||0;
+      var m=Math.round((parseInt(p[1])||0)/5)*5;
+      if(m>=60){m=0;h=(h+1)%24;}
+      return {h:h,m:m};
     }
 
     // ---- Config & Auth ----
     async function fetchConfig() {
-      var res = await fetch(window.__CONFIG_URL__ + '?_path=config');
-      var c = await res.json();
-      window.__LIFF_ID__ = c.liff_id || '';
-      window.__APP_VERSION__ = c.version || '';
+      var r=await fetch(window.__CONFIG_URL__+'?_path=config');
+      var c=await r.json();
+      window.__LIFF_ID__=c.liff_id||'';
+      window.__APP_VERSION__=c.version||'';
     }
-
     function applyVersionLabel() {
-      var ver = String(window.__APP_VERSION__ || '').trim();
-      var verText = ver ? ('v' + ver) : '';
-      document.getElementById('verInline').textContent = verText;
-      document.title = 'Gym' + (verText ? ' ' + verText : '');
+      var v=String(window.__APP_VERSION__||'').trim();
+      var t=v?'v'+v:'';
+      document.getElementById('verInline').textContent=t;
+      document.title='Gym'+(t?' '+t:'');
     }
-
-    var DEV_TOKEN = new URLSearchParams(location.search).get('dev') || '';
-    var IS_DEV_BYPASS = DEV_TOKEN.length > 0;
-    var lineUserId = '';
-
-    function apiUrl(path) {
-      var b = (window.__API_BASE__ || '').replace(/\/$/, '');
-      var parts = path.split('?');
-      var url = b + '?_path=' + encodeURIComponent(parts[0]);
-      if (parts[1]) url += '&' + parts[1];
-      return url;
+    var DEV_TOKEN=new URLSearchParams(location.search).get('dev')||'';
+    var IS_DEV=DEV_TOKEN.length>0;
+    var lineUserId='';
+    function apiUrl(path){
+      var b=(window.__API_BASE__||'').replace(/\/$/,'');
+      var p=path.split('?');
+      return b+'?_path='+encodeURIComponent(p[0])+(p[1]?'&'+p[1]:'');
     }
-
-    function loadScript(src) {
-      return new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = src; s.onload = resolve;
-        s.onerror = function() { reject(new Error('script load failed')); };
+    function loadScript(src){
+      return new Promise(function(res,rej){
+        var s=document.createElement('script'); s.src=src; s.onload=res;
+        s.onerror=function(){rej(new Error('script load failed'));};
         document.head.appendChild(s);
       });
     }
-
-    async function fetchWithAuth(path, options) {
-      var o = options || {};
-      var method = (o.method || 'GET').toUpperCase();
-      if (method === 'POST' && o.body) {
-        var b = JSON.parse(o.body);
-        b.userId = lineUserId;
-        b._path = path.split('?')[0];
-        if (IS_DEV_BYPASS) b.dev_token = DEV_TOKEN;
-        o = Object.assign({}, o, { body: JSON.stringify(b) });
-        var q = IS_DEV_BYPASS
-          ? '&dev_token=' + encodeURIComponent(DEV_TOKEN) + '&userId=dev-claude'
-          : '&userId=' + encodeURIComponent(lineUserId || '');
-        return fetch(window.__API_BASE__, Object.assign({}, o, { method: 'POST' })).catch(function() {
-          return fetch(apiUrl(path) + q, o);
+    function authQ(){
+      return IS_DEV?('&dev_token='+encodeURIComponent(DEV_TOKEN)+'&userId=dev-claude'):('&userId='+encodeURIComponent(lineUserId||''));
+    }
+    async function fetchWithAuth(path, opts) {
+      var o=opts||{};
+      var method=(o.method||'GET').toUpperCase();
+      if(method==='POST'&&o.body){
+        var b=JSON.parse(o.body);
+        b.userId=lineUserId; b._path=path.split('?')[0];
+        if(IS_DEV) b.dev_token=DEV_TOKEN;
+        o=Object.assign({},o,{body:JSON.stringify(b)});
+        return fetch(window.__API_BASE__,Object.assign({},o,{method:'POST'})).catch(function(){
+          return fetch(apiUrl(path)+authQ(),o);
         });
       }
-      var q = IS_DEV_BYPASS
-        ? '&dev_token=' + encodeURIComponent(DEV_TOKEN) + '&userId=dev-claude'
-        : '&userId=' + encodeURIComponent(lineUserId || '');
-      return fetch(apiUrl(path) + q, o);
+      return fetch(apiUrl(path)+authQ(),o);
     }
-
-    async function apiMe() {
-      var r = await fetchWithAuth('auth/me');
-      return r.json();
+    async function apiMe(){ return (await fetchWithAuth('auth/me')).json(); }
+    async function apiListVisits(from,to){
+      var q=(from&&to)?('from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)):'';
+      return (await fetchWithAuth('api/gym/visits'+(q?'?'+q:''))).json();
     }
-
-    async function apiListVisits(from, to) {
-      var q = (from && to) ? ('from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to)) : '';
-      var r = await fetchWithAuth('api/gym/visits' + (q ? '?' + q : ''));
-      return r.json();
-    }
-
-    async function apiDeleteVisit(id) {
-      var q = IS_DEV_BYPASS
-        ? '&dev_token=' + encodeURIComponent(DEV_TOKEN) + '&userId=dev-claude'
-        : '&userId=' + encodeURIComponent(lineUserId || '');
-      var url = apiUrl('api/gym/visits/delete') + q + '&id=' + encodeURIComponent(id);
-      var r = await fetch(url);
-      return r.json();
-    }
-
-    async function apiSaveVisit(payload) {
-      try {
-        var r = await fetchWithAuth('api/gym/visits', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(Object.assign({ _path: 'api/gym/visits' }, payload))
-        });
+    async function apiSaveVisit(payload){
+      try{
+        var r=await fetchWithAuth('api/gym/visits',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({_path:'api/gym/visits'},payload))});
         return r.json();
-      } catch (postErr) {
-        var q = new URLSearchParams();
-        Object.keys(payload).forEach(function(k) {
-          q.set(k, payload[k] == null ? '' : String(payload[k]));
-        });
-        var r2 = await fetchWithAuth('api/gym/visits/save?' + q.toString());
-        return r2.json();
+      }catch(e){
+        var q=new URLSearchParams();
+        Object.keys(payload).forEach(function(k){ q.set(k,payload[k]==null?'':String(payload[k])); });
+        return (await fetchWithAuth('api/gym/visits/save?'+q.toString())).json();
       }
     }
-
-    function setMeta(s) { document.getElementById('metaStrip').textContent = s; }
+    async function apiDeleteVisit(id){
+      return (await fetch(apiUrl('api/gym/visits/delete')+authQ()+'&id='+encodeURIComponent(id))).json();
+    }
+    function setMeta(s){ document.getElementById('metaStrip').textContent=s; }
 
     // ---- State ----
-    var allRecords = [];
-    var editDraft = {};
-    var editingId = null;
-    var dashLoaded = false;
+    var allRecords=[];
+    var savingSet=new Set();
+    var dashLoaded=false;
 
     // ---- Tab switching ----
-    function switchView(name) {
-      document.querySelectorAll('.view-tab').forEach(function(t) {
-        t.classList.toggle('active', t.getAttribute('data-view') === name);
+    function switchView(name){
+      document.querySelectorAll('.view-tab').forEach(function(t){
+        t.classList.toggle('active',t.getAttribute('data-view')===name);
       });
-      document.getElementById('viewRecords').style.display = name === 'records' ? 'block' : 'none';
-      document.getElementById('viewDash').style.display = name === 'dash' ? 'block' : 'none';
-      if (name === 'dash') loadDashboard();
-      if (name === 'records') renderRecordsTable();
+      document.getElementById('viewRecords').style.display=name==='records'?'block':'none';
+      document.getElementById('viewDash').style.display=name==='dash'?'block':'none';
+      if(name==='dash') loadDashboard();
     }
-
-    document.querySelectorAll('.view-tab').forEach(function(btn) {
-      btn.addEventListener('click', function() { switchView(btn.getAttribute('data-view')); });
+    document.querySelectorAll('.view-tab').forEach(function(btn){
+      btn.addEventListener('click',function(){ switchView(btn.getAttribute('data-view')); });
     });
 
-    // ---- Count buttons ----
-    function renderCountBtns(containerId, field) {
-      var container = document.getElementById(containerId);
-      container.innerHTML = '';
-      for (var i = 0; i <= 10; i++) {
-        (function(val) {
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.textContent = val;
-          btn.className = 'count-btn' + (editDraft[field] === val ? ' active' : '');
-          btn.addEventListener('click', function() {
-            editDraft[field] = val;
-            renderCountBtns(containerId, field);
-          });
-          container.appendChild(btn);
-        })(i);
+    // ---- Popup system ----
+    var _popResolve=null;
+    var _popType=null;
+
+    function _openPopup(title, contentHtml, type, actions) {
+      // actions: 'ok-cancel' | 'cancel' | 'none'
+      document.getElementById('popupTitle').textContent=title;
+      document.getElementById('popupContent').innerHTML=contentHtml;
+      var okBtn=document.getElementById('popupOk');
+      var cancelBtn=document.getElementById('popupCancel');
+      okBtn.style.display=(actions==='ok-cancel')?'':'none';
+      cancelBtn.style.display=(actions!=='none')?'':'none';
+      document.getElementById('popupActions').style.display=(actions==='none')?'none':'flex';
+      document.getElementById('popupOverlay').style.display='flex';
+      _popType=type;
+      return new Promise(function(res){ _popResolve=res; });
+    }
+    function _resolvePopup(val){
+      document.getElementById('popupOverlay').style.display='none';
+      if(_popResolve){ _popResolve(val); _popResolve=null; }
+    }
+    document.getElementById('popupCancel').addEventListener('click',function(){ _resolvePopup(null); });
+    document.getElementById('popupOverlay').addEventListener('click',function(e){ if(e.target===this) _resolvePopup(null); });
+    document.getElementById('popupOk').addEventListener('click',function(){
+      if(_popType==='date'){
+        _resolvePopup(document.getElementById('popDate').value||null);
+      } else if(_popType==='time'){
+        var h=document.getElementById('selH').value.padStart(2,'0');
+        var m=document.getElementById('selM').value.padStart(2,'0');
+        _resolvePopup(h+':'+m);
+      } else if(_popType==='memo'){
+        _resolvePopup(document.getElementById('popMemo').value);
       }
-    }
-
-    // ---- Edit panel ----
-    function openEdit(rec) {
-      editingId = rec.id || null;
-      editDraft = {
-        id: rec.id || '',
-        visit_date: String(rec.visit_date || '').slice(0, 10),
-        time_start: String(rec.time_start || '').slice(0, 5),
-        time_end: String(rec.time_end || '').slice(0, 5),
-        aerobic_minutes: parseInt(rec.aerobic_minutes, 10) || 0,
-        tr1_people: parseInt(rec.tr1_people, 10) || 0,
-        tr2_people: parseInt(rec.tr2_people, 10) || 0,
-        notes: String(rec.notes || ''),
-        club: rec.club === true || rec.club === 'true',
-      };
-      document.getElementById('editPanelTitle').textContent = editingId ? '記録を編集' : '新規記録';
-      document.getElementById('editDate').value = editDraft.visit_date;
-      document.getElementById('editStart').value = editDraft.time_start;
-      document.getElementById('editEnd').value = editDraft.time_end;
-      document.getElementById('editNotes').value = editDraft.notes;
-      document.getElementById('editClub').checked = editDraft.club;
-      document.getElementById('editMsg').innerHTML = '';
-      renderCountBtns('cntAero', 'aerobic_minutes');
-      renderCountBtns('cntTr1', 'tr1_people');
-      renderCountBtns('cntTr2', 'tr2_people');
-      document.getElementById('editPanel').style.display = 'block';
-      document.getElementById('viewRecords').scrollTop = 0;
-      highlightSelected();
-    }
-
-    function closeEdit() {
-      editingId = null;
-      editDraft = {};
-      document.getElementById('editPanel').style.display = 'none';
-      document.getElementById('editMsg').innerHTML = '';
-      document.querySelectorAll('#tblRecordsBody tr').forEach(function(tr) {
-        tr.classList.remove('selected');
-      });
-    }
-
-    function highlightSelected() {
-      document.querySelectorAll('#tblRecordsBody tr').forEach(function(tr) {
-        tr.classList.toggle('selected', tr.getAttribute('data-id') === String(editingId || ''));
-      });
-    }
-
-    function syncDraftFromForm() {
-      editDraft.visit_date = document.getElementById('editDate').value;
-      editDraft.time_start = document.getElementById('editStart').value.slice(0, 5);
-      editDraft.time_end = document.getElementById('editEnd').value.slice(0, 5);
-      editDraft.notes = document.getElementById('editNotes').value;
-      editDraft.club = document.getElementById('editClub').checked;
-    }
-
-    async function saveEditDraft(keepOpen) {
-      syncDraftFromForm();
-      var btn = document.getElementById('btnSaveEdit');
-      btn.disabled = true;
-      document.getElementById('editMsg').innerHTML = '';
-      try {
-        var payload = {
-          id: editDraft.id,
-          visit_date: editDraft.visit_date,
-          time_start: editDraft.time_start,
-          time_end: editDraft.time_end,
-          aerobic_minutes: editDraft.aerobic_minutes,
-          tr1_people: editDraft.tr1_people,
-          tr2_people: editDraft.tr2_people,
-          notes: editDraft.notes,
-          club: editDraft.club,
-        };
-        var r = await apiSaveVisit(payload);
-        if (r.error) throw new Error(r.error);
-        var saved = r.visit;
-        var idx = allRecords.findIndex(function(v) { return v.id === saved.id; });
-        if (idx >= 0) allRecords[idx] = saved; else allRecords.push(saved);
-        dashLoaded = false;
-        renderRecordsTable();
-        if (keepOpen) {
-          document.getElementById('editMsg').innerHTML = '<span class="msg-ok">保存しました</span>';
-          highlightSelected();
-        } else {
-          closeEdit();
-        }
-      } catch (e) {
-        document.getElementById('editMsg').innerHTML = '<span class="msg-err">' + esc(String(e.message || e)) + '</span>';
-      }
-      btn.disabled = false;
-    }
-
-    // Timestamp: 編集 = stamp time_end + save, keep open
-    document.getElementById('btnStampEdit').addEventListener('click', function() {
-      var t = nowJstHm();
-      document.getElementById('editEnd').value = t;
-      editDraft.time_end = t;
-      saveEditDraft(true);
     });
 
-    // Timestamp: 終了 = stamp time_end + save + close
-    document.getElementById('btnStampEnd').addEventListener('click', function() {
-      var t = nowJstHm();
-      document.getElementById('editEnd').value = t;
-      editDraft.time_end = t;
-      saveEditDraft(false);
-    });
-
-    document.getElementById('btnSaveEdit').addEventListener('click', function() {
-      saveEditDraft(false);
-    });
-
-    document.getElementById('btnCancelEdit').addEventListener('click', closeEdit);
+    function popupDate(val){
+      var p=_openPopup('日付','<input type="date" id="popDate" class="popup-date-input">','date','ok-cancel');
+      setTimeout(function(){ var i=document.getElementById('popDate'); if(i) i.value=val||todayJstYmd(); },0);
+      return p;
+    }
+    function popupTime(label, val){
+      var t=hmToSel(val);
+      var hOpts=''; for(var i=0;i<24;i++){ var hh=String(i).padStart(2,'0'); hOpts+='<option value="'+hh+'"'+(i===t.h?' selected':'')+'>'+hh+'</option>'; }
+      var mOpts=''; for(var j=0;j<60;j+=5){ var mm=String(j).padStart(2,'0'); mOpts+='<option value="'+mm+'"'+(j===t.m?' selected':'')+'>'+mm+'</option>'; }
+      var html='<div class="time-sel-row"><select id="selH" class="time-sel">'+hOpts+'</select><span class="time-colon">:</span><select id="selM" class="time-sel">'+mOpts+'</select></div>';
+      return _openPopup(label,html,'time','ok-cancel');
+    }
+    function popupCount(label, val){
+      var cur=parseInt(val)||0;
+      var html='<div class="count-grid">';
+      for(var i=0;i<=10;i++) html+='<button type="button" class="pop-cnt-btn'+(i===cur?' sel':'')+'" data-v="'+i+'">'+i+'</button>';
+      html+='</div>';
+      var p=_openPopup(label,html,'count','none');
+      setTimeout(function(){
+        document.querySelectorAll('.pop-cnt-btn').forEach(function(btn){
+          btn.addEventListener('click',function(){ _resolvePopup(parseInt(btn.dataset.v)); });
+        });
+      },0);
+      return p;
+    }
+    function popupClub(val){
+      var isOn=val===true;
+      var html='<div class="club-toggle-row">'+
+        '<button type="button" class="club-toggle-btn'+(!isOn?' sel':'')+'" data-v="0">なし</button>'+
+        '<button type="button" class="club-toggle-btn'+(isOn?' sel':'')+'" data-v="1">あり</button>'+
+        '</div>';
+      var p=_openPopup('Club',html,'club','none');
+      setTimeout(function(){
+        document.querySelectorAll('.club-toggle-btn').forEach(function(btn){
+          btn.addEventListener('click',function(){ _resolvePopup(btn.dataset.v==='1'); });
+        });
+      },0);
+      return p;
+    }
+    function popupMemo(val){
+      var p=_openPopup('メモ','<textarea id="popMemo" class="popup-textarea" rows="4"></textarea>','memo','ok-cancel');
+      setTimeout(function(){ var t=document.getElementById('popMemo'); if(t){ t.value=val||''; t.focus(); } },0);
+      return p;
+    }
 
     // ---- Records table ----
-    function renderRecordsTable() {
-      var sorted = allRecords.slice().sort(function(a, b) {
-        var da = String(a.visit_date || '').slice(0, 10);
-        var db = String(b.visit_date || '').slice(0, 10);
-        if (da !== db) return da > db ? -1 : 1;
-        return String(a.time_start || '') > String(b.time_start || '') ? -1 : 1;
+    function renderRecordsTable(){
+      var sorted=allRecords.slice().sort(function(a,b){
+        var da=String(a.visit_date||'').slice(0,10);
+        var db=String(b.visit_date||'').slice(0,10);
+        if(da!==db) return da>db?-1:1;
+        return String(a.time_start||'')>String(b.time_start||'')?-1:1;
       });
-      var empty = document.getElementById('recEmpty');
-      var tbl = document.getElementById('tblRecords');
-      if (sorted.length === 0) {
-        empty.style.display = 'block';
-        tbl.style.display = 'none';
+      var empty=document.getElementById('recEmpty');
+      var wrap=document.getElementById('tableWrap');
+      if(sorted.length===0){ empty.style.display='block'; wrap.style.display='none'; return; }
+      empty.style.display='none'; wrap.style.display='block';
+      var html='';
+      for(var i=0;i<sorted.length;i++){
+        var v=sorted[i];
+        var saving=savingSet.has(v.id);
+        var ymd=String(v.visit_date||'').slice(0,10);
+        var dateDisp=ymd.slice(5).replace('-','/');
+        var clubHtml=v.club?'<span class="club-on">✓</span>':'<span class="club-off">−</span>';
+        var notesHtml=v.notes?'<span class="notes-val">'+esc(v.notes)+'</span>':'<span style="color:#374151">−</span>';
+        var rowCls=saving?' class="row-saving"':'';
+        if(saving){
+          html+='<tr'+rowCls+'>'+
+            '<td>'+esc(dateDisp)+'</td>'+
+            '<td>'+esc(v.time_start||'−')+'</td>'+
+            '<td>'+esc(v.time_end||'−')+'</td>'+
+            '<td>'+esc(v.aerobic_minutes||0)+'</td>'+
+            '<td>'+esc(v.tr1_people||0)+'</td>'+
+            '<td>'+esc(v.tr2_people||0)+'</td>'+
+            '<td>'+clubHtml+'</td>'+
+            '<td>'+notesHtml+'</td>'+
+            '<td><span class="saving-txt">更新中…</span></td>'+
+            '</tr>';
+        } else {
+          var id=esc(v.id);
+          function cell(field,content){
+            return '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="'+field+'">'+content+'</td>';
+          }
+          html+='<tr>'+
+            cell('visit_date',esc(dateDisp))+
+            cell('time_start',esc(v.time_start||'−'))+
+            cell('time_end',esc(v.time_end||'−'))+
+            cell('aerobic_minutes',esc(v.aerobic_minutes||0))+
+            cell('tr1_people',esc(v.tr1_people||0))+
+            cell('tr2_people',esc(v.tr2_people||0))+
+            cell('club',clubHtml)+
+            cell('notes',notesHtml)+
+            '<td><button class="btn-delete" data-action="delete" data-id="'+id+'">Delete</button></td>'+
+            '</tr>';
+        }
+      }
+      document.getElementById('tblBody').innerHTML=html;
+    }
+
+    // ---- Event delegation on table ----
+    document.getElementById('tblBody').addEventListener('click',async function(e){
+      var el=e.target.closest('[data-action]');
+      if(!el) return;
+      var action=el.dataset.action;
+      var id=el.dataset.id;
+      if(savingSet.has(id)) return;
+
+      if(action==='delete'){
+        if(!confirm('この記録を削除しますか？')) return;
+        el.disabled=true;
+        try{
+          var r=await apiDeleteVisit(id);
+          if(r.error) throw new Error(r.error);
+          allRecords=allRecords.filter(function(v){ return v.id!==id; });
+          dashLoaded=false;
+          renderRecordsTable();
+        }catch(ex){ alert('削除エラー: '+String(ex.message||ex)); el.disabled=false; }
         return;
       }
-      empty.style.display = 'none';
-      tbl.style.display = 'table';
-      var html = '';
-      for (var i = 0; i < sorted.length; i++) {
-        var v = sorted[i];
-        var ymd = String(v.visit_date || '').slice(0, 10);
-        var dateDisp = ymd.slice(5).replace('-', '/');
-        var timeRange = esc(v.time_start || '');
-        if (v.time_end) timeRange += '〜' + esc(v.time_end);
-        var clubCell = v.club ? '<span class="club-tag">C</span>' : '';
-        var sel = String(v.id) === String(editingId || '') ? ' class="selected"' : '';
-        html += '<tr data-id="' + esc(v.id) + '"' + sel + '>' +
-          '<td>' + dateDisp + '</td>' +
-          '<td style="white-space:nowrap;">' + timeRange + '</td>' +
-          '<td>' + esc(v.aerobic_minutes || 0) + '</td>' +
-          '<td>' + esc(v.tr1_people || 0) + '</td>' +
-          '<td>' + esc(v.tr2_people || 0) + '</td>' +
-          '<td>' + clubCell + '</td>' +
-          '<td class="notes-cell">' + esc(v.notes || '') + '</td>' +
-          '<td><button class="btn-del" data-del-id="' + esc(v.id) + '" title="削除">×</button></td>' +
-          '</tr>';
-      }
-      document.getElementById('tblRecordsBody').innerHTML = html;
-      document.querySelectorAll('#tblRecordsBody tr').forEach(function(tr) {
-        tr.addEventListener('click', function() {
-          var id = tr.getAttribute('data-id');
-          if (String(editingId || '') === id) {
-            closeEdit();
-            return;
-          }
-          var rec = allRecords.find(function(v) { return String(v.id) === id; });
-          if (rec) openEdit(rec);
-        });
-      });
-      document.querySelectorAll('.btn-del').forEach(function(btn) {
-        btn.addEventListener('click', async function(e) {
-          e.stopPropagation();
-          var id = btn.getAttribute('data-del-id');
-          if (!confirm('この記録を削除しますか？')) return;
-          try {
-            var r = await apiDeleteVisit(id);
-            if (r.error) throw new Error(r.error);
-            allRecords = allRecords.filter(function(v) { return v.id !== id; });
-            if (editingId === id) closeEdit();
-            dashLoaded = false;
-            renderRecordsTable();
-          } catch (ex) {
-            alert('削除エラー: ' + String(ex.message || ex));
-          }
-        });
-      });
-    }
 
-    async function loadRecords() {
-      try {
-        var j = await apiListVisits('2020-01-01', todayJstYmd());
-        if (j.ok && j.visits) {
-          allRecords = j.visits;
-          renderRecordsTable();
-        } else {
-          document.getElementById('recEmpty').style.display = 'block';
-        }
-      } catch (e) {
-        document.getElementById('recEmpty').style.display = 'block';
+      if(action==='edit'){
+        var field=el.dataset.field;
+        var rec=allRecords.find(function(v){ return v.id===id; });
+        if(!rec) return;
+        var newVal=null;
+        if(field==='visit_date')        newVal=await popupDate(rec.visit_date);
+        else if(field==='time_start')   newVal=await popupTime('開始時刻', rec.time_start||nowJstHm());
+        else if(field==='time_end')     newVal=await popupTime('終了時刻', rec.time_end||addMinutes(rec.time_start||nowJstHm(),90));
+        else if(field==='aerobic_minutes') newVal=await popupCount('有酸素人数', rec.aerobic_minutes||0);
+        else if(field==='tr1_people')   newVal=await popupCount('TR1 人数', rec.tr1_people||0);
+        else if(field==='tr2_people')   newVal=await popupCount('TR2 人数', rec.tr2_people||0);
+        else if(field==='club')         newVal=await popupClub(rec.club||false);
+        else if(field==='notes')        newVal=await popupMemo(rec.notes||'');
+        if(newVal===null) return;
+        await saveField(id, field, newVal);
       }
-    }
+    });
 
-    // ---- New record button ----
-    document.getElementById('btnNew').addEventListener('click', async function() {
-      var btn = this;
-      btn.disabled = true;
-      try {
-        var r = await apiSaveVisit({ visit_date: todayJstYmd(), time_start: nowJstHm() });
-        if (r.error) throw new Error(r.error);
-        var saved = r.visit;
-        var idx = allRecords.findIndex(function(v) { return v.id === saved.id; });
-        if (idx >= 0) allRecords[idx] = saved; else allRecords.push(saved);
-        dashLoaded = false;
-        switchView('records');
+    async function saveField(id, field, newVal){
+      var idx=allRecords.findIndex(function(v){ return v.id===id; });
+      if(idx<0) return;
+      var prev=Object.assign({},allRecords[idx]);
+      var upd=Object.assign({},prev);
+      upd[field]=newVal;
+      allRecords[idx]=upd;
+      savingSet.add(id);
+      renderRecordsTable();
+      try{
+        var r=await apiSaveVisit({
+          id:upd.id, visit_date:upd.visit_date,
+          time_start:upd.time_start||'', time_end:upd.time_end||'',
+          aerobic_minutes:upd.aerobic_minutes||0,
+          tr1_people:upd.tr1_people||0, tr2_people:upd.tr2_people||0,
+          notes:upd.notes||'', club:upd.club||false,
+        });
+        if(r.error) throw new Error(r.error);
+        allRecords[idx]=Object.assign({},r.visit,{club:r.visit.club===true});
+        dashLoaded=false;
+      }catch(e){
+        allRecords[idx]=prev;
+        alert('保存エラー: '+(e.message||e));
+      }finally{
+        savingSet.delete(id);
         renderRecordsTable();
-        openEdit(saved);
-      } catch (e) {
-        alert('エラー: ' + String(e.message || e));
       }
-      btn.disabled = false;
+    }
+
+    async function loadRecords(){
+      try{
+        var j=await apiListVisits('2020-01-01',todayJstYmd());
+        if(j.ok&&j.visits){ allRecords=j.visits; renderRecordsTable(); }
+        else document.getElementById('recEmpty').style.display='block';
+      }catch(e){ document.getElementById('recEmpty').style.display='block'; }
+    }
+
+    // ---- New record ----
+    document.getElementById('btnNew').addEventListener('click',async function(){
+      var btn=this; btn.disabled=true;
+      try{
+        var startHm=nowJstHm();
+        var endHm=addMinutes(startHm,90);
+        var r=await apiSaveVisit({visit_date:todayJstYmd(),time_start:startHm,time_end:endHm});
+        if(r.error) throw new Error(r.error);
+        var saved=r.visit;
+        var idx=allRecords.findIndex(function(v){ return v.id===saved.id; });
+        if(idx>=0) allRecords[idx]=saved; else allRecords.push(saved);
+        dashLoaded=false;
+        renderRecordsTable();
+      }catch(e){ alert('エラー: '+(e.message||e)); }
+      btn.disabled=false;
     });
 
     // ---- Dashboard ----
-    async function loadDashboard() {
-      if (dashLoaded) return;
-      var today = todayJstYmd();
-      var from = (function() {
-        var parts = new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
-        }).formatToParts(new Date(Date.now() - 30 * 86400000));
-        var y = '', m = '', dd = '';
-        for (var i = 0; i < parts.length; i++) {
-          if (parts[i].type === 'year') y = parts[i].value;
-          if (parts[i].type === 'month') m = parts[i].value;
-          if (parts[i].type === 'day') dd = parts[i].value;
-        }
-        return y + '-' + m + '-' + dd;
+    async function loadDashboard(){
+      if(dashLoaded) return;
+      var today=todayJstYmd();
+      var from=(function(){
+        var p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()-30*86400000));
+        var y='',m='',d=''; p.forEach(function(x){ if(x.type==='year')y=x.value; if(x.type==='month')m=x.value; if(x.type==='day')d=x.value; });
+        return y+'-'+m+'-'+d;
       })();
-
-      var j;
-      try { j = await apiListVisits(from, today); }
-      catch (e) { document.getElementById('dashEmpty').style.display = 'block'; return; }
-
-      if (j.error || !j.ok || !j.visits || !j.visits.length) {
-        document.getElementById('dashEmpty').style.display = 'block';
-        document.getElementById('dashCards').innerHTML = '';
-        return;
+      var j; try{ j=await apiListVisits(from,today); }catch(e){ document.getElementById('dashEmpty').style.display='block'; return; }
+      if(j.error||!j.ok||!j.visits||!j.visits.length){ document.getElementById('dashEmpty').style.display='block'; return; }
+      dashLoaded=true;
+      var rows=j.visits, n=rows.length, sumStay=0, stayCnt=0, sumAero=0, sumTr1=0, sumTr2=0, clubCnt=0;
+      rows.forEach(function(v){
+        var s=minutesBetween(v.time_start,v.time_end,String(v.visit_date||'').slice(0,10));
+        if(typeof s==='number'){ sumStay+=s; stayCnt++; }
+        sumAero+=parseInt(v.aerobic_minutes,10)||0;
+        sumTr1+=parseInt(v.tr1_people,10)||0;
+        sumTr2+=parseInt(v.tr2_people,10)||0;
+        if(v.club===true) clubCnt++;
+      });
+      function card(k,v,cls){
+        return '<div class="dash-card '+cls+'"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div></div>';
       }
-      dashLoaded = true;
-
-      var rows = j.visits;
-      var n = rows.length;
-      var sumStay = 0, stayCount = 0, sumAero = 0, sumTr1 = 0, sumTr2 = 0, clubCount = 0;
-      for (var k = 0; k < rows.length; k++) {
-        var v = rows[k];
-        var stay = minutesBetween(v.time_start, v.time_end, String(v.visit_date || '').slice(0, 10));
-        if (typeof stay === 'number') { sumStay += stay; stayCount++; }
-        sumAero += parseInt(v.aerobic_minutes, 10) || 0;
-        sumTr1 += parseInt(v.tr1_people, 10) || 0;
-        sumTr2 += parseInt(v.tr2_people, 10) || 0;
-        if (v.club === true) clubCount++;
-      }
-      var avgStay = stayCount ? Math.round(sumStay / stayCount) : 0;
-
-      function card(k, v) {
-        return '<div class="dash-card"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + '</div></div>';
-      }
-      function row(cards) {
-        return '<div class="dash-row">' + cards + '</div>';
-      }
-
-      document.getElementById('dashEmpty').style.display = 'none';
-      document.getElementById('dashCards').innerHTML =
-        row(card('記録数', n + '回') + card('Club利用数', clubCount + '回')) +
-        row(card('1回当たり', n ? '¥' + Math.round(7678 / n).toLocaleString('ja-JP') : '-') + card('Club 1回', clubCount ? '¥' + Math.round(1650 / clubCount).toLocaleString('ja-JP') : '-')) +
-        row(card('滞在合計', sumStay + '分') + card('平均滞在', avgStay + '分')) +
-        row(card('有酸素平均', (sumAero / n).toFixed(1) + '人') + card('TR1 平均', (sumTr1 / n).toFixed(1) + '人') + card('TR2 平均', (sumTr2 / n).toFixed(1) + '人'));
+      function row(html){ return '<div class="dash-row">'+html+'</div>'; }
+      var avgStay=stayCnt?Math.round(sumStay/stayCnt):0;
+      document.getElementById('dashEmpty').style.display='none';
+      document.getElementById('dashCards').innerHTML=
+        row(card('記録数',n+'回','dc-blue')+card('Club利用数',clubCnt+'回','dc-blue'))+
+        row(card('1回当たり',n?'¥'+Math.round(7678/n).toLocaleString('ja-JP'):'-','dc-green')+card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green'))+
+        row(card('滞在合計',sumStay+'分','dc-purple')+card('平均滞在',avgStay+'分','dc-purple'))+
+        row(card('有酸素平均',(sumAero/n).toFixed(1)+'人','dc-amber')+card('TR1 平均',(sumTr1/n).toFixed(1)+'人','dc-amber')+card('TR2 平均',(sumTr2/n).toFixed(1)+'人','dc-amber'));
     }
 
     // ---- Init ----
-    (async function main() {
-      try {
-        if (!window.__CONFIG_URL__ || window.__CONFIG_URL__.indexOf('__GAS_CONFIG') >= 0) {
-          setMeta('GAS の Web アプリ URL を index.html の __CONFIG_URL__ に設定してください');
-          return;
-        }
+    (async function main(){
+      try{
         await fetchConfig();
         applyVersionLabel();
         await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
-        var liffId = (window.__LIFF_ID__ || '').trim();
-        if (!liffId) { setMeta('LIFF_ID 未設定（GAS config）'); return; }
-        await liff.init({ liffId: liffId });
-        if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href.split('#')[0] }); return; }
-        var prof = await liff.getProfile();
-        lineUserId = prof.userId;
-        document.getElementById('headerUser').textContent = prof.displayName || lineUserId;
-        var me = await apiMe();
-        if (!me.ok || !me.access_granted) {
-          setMeta('この LINE アカウントは未許可です（GAS の ALLOWED_USER_IDS に userId を追加）');
-          return;
-        }
-        setMeta('接続済み · ' + todayJstYmd());
+        var liffId=(window.__LIFF_ID__||'').trim();
+        if(!liffId){ setMeta('LIFF_ID 未設定'); return; }
+        await liff.init({liffId:liffId});
+        if(!liff.isLoggedIn()){ liff.login({redirectUri:location.href.split('#')[0]}); return; }
+        var prof=await liff.getProfile();
+        lineUserId=prof.userId;
+        document.getElementById('headerUser').textContent=prof.displayName||lineUserId;
+        var me=await apiMe();
+        if(!me.ok||!me.access_granted){ setMeta('この LINE アカウントは未許可です'); return; }
+        setMeta('接続済み · '+todayJstYmd());
         loadRecords();
-      } catch (e) {
-        var em = String((e && e.message) ? e.message : e || '').trim();
-        setMeta('初期化エラー: ' + (em || 'unknown'));
+      }catch(e){
+        setMeta('初期化エラー: '+String((e&&e.message)?e.message:e||'').trim());
       }
     })();
   </script>
