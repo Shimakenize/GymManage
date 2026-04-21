@@ -60,9 +60,12 @@
     .data-table tbody tr.selected { background: #0d2535; }
     .club-tag { display: inline-block; background: #1e3a4a; color: #93c5fd; border-radius: 4px; padding: 1px 5px; font-size: 0.72rem; font-weight: 600; }
     .notes-cell { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #94a3b8; }
+    .btn-del { background: none; border: none; color: #6b7280; cursor: pointer; padding: 2px 5px; font-size: 1rem; border-radius: 4px; line-height: 1; }
+    .btn-del:hover { color: #ef4444; background: #1e2d3d; }
     /* Dashboard */
-    .dash-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-    .dash-card { background: #111827; border: 1px solid #233041; border-radius: 10px; padding: 12px; }
+    .dash-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .dash-cards { display: flex; flex-direction: column; gap: 0; }
+    .dash-card { flex: 1; background: #111827; border: 1px solid #233041; border-radius: 10px; padding: 12px; min-width: 0; }
     .dash-card .k { font-size: 0.72rem; color: #94a3b8; }
     .dash-card .v { font-size: 1.15rem; font-weight: 700; color: #e5e7eb; margin-top: 4px; }
     .empty { color: #94a3b8; padding: 24px; text-align: center; }
@@ -144,7 +147,7 @@
       <table class="data-table" id="tblRecords" style="display:none;">
         <thead>
           <tr>
-            <th>日付</th><th>開始〜終了</th><th>有酸</th><th>TR1</th><th>TR2</th><th>C</th><th>メモ</th>
+            <th>日付</th><th>開始〜終了</th><th>有酸</th><th>TR1</th><th>TR2</th><th>C</th><th>メモ</th><th></th>
           </tr>
         </thead>
         <tbody id="tblRecordsBody"></tbody>
@@ -276,6 +279,15 @@
     async function apiListVisits(from, to) {
       var q = (from && to) ? ('from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to)) : '';
       var r = await fetchWithAuth('api/gym/visits' + (q ? '?' + q : ''));
+      return r.json();
+    }
+
+    async function apiDeleteVisit(id) {
+      var q = IS_DEV_BYPASS
+        ? '&dev_token=' + encodeURIComponent(DEV_TOKEN) + '&userId=dev-claude'
+        : '&userId=' + encodeURIComponent(lineUserId || '');
+      var url = apiUrl('api/gym/visits/delete') + q + '&id=' + encodeURIComponent(id);
+      var r = await fetch(url);
       return r.json();
     }
 
@@ -484,6 +496,7 @@
           '<td>' + esc(v.tr2_people || 0) + '</td>' +
           '<td>' + clubCell + '</td>' +
           '<td class="notes-cell">' + esc(v.notes || '') + '</td>' +
+          '<td><button class="btn-del" data-del-id="' + esc(v.id) + '" title="削除">×</button></td>' +
           '</tr>';
       }
       document.getElementById('tblRecordsBody').innerHTML = html;
@@ -496,6 +509,23 @@
           }
           var rec = allRecords.find(function(v) { return String(v.id) === id; });
           if (rec) openEdit(rec);
+        });
+      });
+      document.querySelectorAll('.btn-del').forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+          e.stopPropagation();
+          var id = btn.getAttribute('data-del-id');
+          if (!confirm('この記録を削除しますか？')) return;
+          try {
+            var r = await apiDeleteVisit(id);
+            if (r.error) throw new Error(r.error);
+            allRecords = allRecords.filter(function(v) { return v.id !== id; });
+            if (editingId === id) closeEdit();
+            dashLoaded = false;
+            renderRecordsTable();
+          } catch (ex) {
+            alert('削除エラー: ' + String(ex.message || ex));
+          }
         });
       });
     }
@@ -564,30 +594,31 @@
 
       var rows = j.visits;
       var n = rows.length;
-      var sumStay = 0, sumAero = 0, sumTr1 = 0, sumTr2 = 0, clubCount = 0;
+      var sumStay = 0, stayCount = 0, sumAero = 0, sumTr1 = 0, sumTr2 = 0, clubCount = 0;
       for (var k = 0; k < rows.length; k++) {
         var v = rows[k];
         var stay = minutesBetween(v.time_start, v.time_end, String(v.visit_date || '').slice(0, 10));
-        if (typeof stay === 'number') sumStay += stay;
+        if (typeof stay === 'number') { sumStay += stay; stayCount++; }
         sumAero += parseInt(v.aerobic_minutes, 10) || 0;
         sumTr1 += parseInt(v.tr1_people, 10) || 0;
         sumTr2 += parseInt(v.tr2_people, 10) || 0;
         if (v.club === true) clubCount++;
       }
+      var avgStay = stayCount ? Math.round(sumStay / stayCount) : 0;
 
       function card(k, v) {
         return '<div class="dash-card"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + '</div></div>';
       }
+      function row(cards) {
+        return '<div class="dash-row">' + cards + '</div>';
+      }
 
       document.getElementById('dashEmpty').style.display = 'none';
       document.getElementById('dashCards').innerHTML =
-        card('記録日数', n + '日') +
-        card('滞在合計', sumStay + '分') +
-        card('有酸素平均', (sumAero / n).toFixed(1) + '人') +
-        card('TR1 平均', (sumTr1 / n).toFixed(1) + '人') +
-        card('TR2 平均', (sumTr2 / n).toFixed(1) + '人') +
-        card('1回当たり', n ? '¥' + Math.round(7678 / n).toLocaleString('ja-JP') : '-') +
-        card('Club 1回', clubCount ? '¥' + Math.round(1650 / clubCount).toLocaleString('ja-JP') : '-');
+        row(card('記録数', n + '回') + card('Club利用数', clubCount + '回')) +
+        row(card('1回当たり', n ? '¥' + Math.round(7678 / n).toLocaleString('ja-JP') : '-') + card('Club 1回', clubCount ? '¥' + Math.round(1650 / clubCount).toLocaleString('ja-JP') : '-')) +
+        row(card('滞在合計', sumStay + '分') + card('平均滞在', avgStay + '分')) +
+        row(card('有酸素平均', (sumAero / n).toFixed(1) + '人') + card('TR1 平均', (sumTr1 / n).toFixed(1) + '人') + card('TR2 平均', (sumTr2 / n).toFixed(1) + '人'));
     }
 
     // ---- Init ----
