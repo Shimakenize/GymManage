@@ -277,7 +277,7 @@
       document.getElementById('viewDash').style.display=name==='dash'?'block':'none';
       document.getElementById('viewTodo').style.display=name==='todo'?'block':'none';
       if(name==='dash') loadDashboard();
-      if(name==='todo') renderTodos();
+      if(name==='todo') loadTodos();
     }
     document.querySelectorAll('.view-tab').forEach(function(btn){
       btn.addEventListener('click',function(){ switchView(btn.getAttribute('data-view')); });
@@ -565,13 +565,29 @@
     }
 
     // ---- ToDo ----
-    var TODO_KEY='gymapp_todos';
     var allTodos=[];
-    (function(){ try{ var s=localStorage.getItem(TODO_KEY); if(s) allTodos=JSON.parse(s); }catch(e){} })();
-    function saveTodos(){ try{ localStorage.setItem(TODO_KEY,JSON.stringify(allTodos)); }catch(e){} }
+    var todoLoaded=false;
+
+    async function apiListTodos(){
+      return (await fetchWithAuth('api/todos')).json();
+    }
+    async function apiSaveTodo(payload){
+      try{
+        var r=await fetchWithAuth('api/todos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({_path:'api/todos'},payload))});
+        return r.json();
+      }catch(e){
+        var q=new URLSearchParams();
+        Object.keys(payload).forEach(function(k){ q.set(k,payload[k]==null?'':String(payload[k])); });
+        return (await fetchWithAuth('api/todos/save?'+q.toString())).json();
+      }
+    }
+    async function apiDeleteTodo(id){
+      return (await fetch(apiUrl('api/todos/delete')+authQ()+'&id='+encodeURIComponent(id))).json();
+    }
+
     function renderTodos(){
-      var undone=allTodos.filter(function(t){ return !t.done; }).sort(function(a,b){ return a.createdAt-b.createdAt; });
-      var done=allTodos.filter(function(t){ return t.done; }).sort(function(a,b){ return a.createdAt-b.createdAt; });
+      var undone=allTodos.filter(function(t){ return !t.done; }).sort(function(a,b){ return String(a.created_at)<String(b.created_at)?-1:1; });
+      var done=allTodos.filter(function(t){ return t.done; }).sort(function(a,b){ return String(a.created_at)<String(b.created_at)?-1:1; });
       var list=undone.concat(done);
       var el=document.getElementById('todoList');
       var empty=document.getElementById('todoEmpty');
@@ -579,7 +595,7 @@
       empty.style.display='none';
       var html='';
       list.forEach(function(t){
-        html+='<div class="todo-item" data-id="'+esc(t.id)+'">'+
+        html+='<div class="todo-item">'+
           '<div class="todo-circle'+(t.done?' done':'')+'" data-todo-toggle="'+esc(t.id)+'"></div>'+
           '<span class="todo-text'+(t.done?' done':'')+'">'+esc(t.text)+'</span>'+
           '<button class="todo-del" data-todo-del="'+esc(t.id)+'" title="削除">×</button>'+
@@ -587,22 +603,51 @@
       });
       el.innerHTML=html;
     }
-    document.getElementById('todoList').addEventListener('click',function(e){
+
+    async function loadTodos(){
+      if(todoLoaded) return;
+      try{
+        var j=await apiListTodos();
+        if(j.ok) allTodos=j.todos||[];
+        todoLoaded=true;
+        renderTodos();
+      }catch(e){ document.getElementById('todoEmpty').style.display='block'; }
+    }
+
+    document.getElementById('todoList').addEventListener('click',async function(e){
       var tg=e.target.closest('[data-todo-toggle]');
       if(tg){
         var id=tg.dataset.todoToggle;
         var t=allTodos.find(function(x){ return x.id===id; });
-        if(t){ t.done=!t.done; saveTodos(); renderTodos(); }
+        if(!t) return;
+        var prev=t.done;
+        t.done=!t.done; renderTodos();
+        try{
+          var r=await apiSaveTodo({id:t.id,text:t.text,done:t.done});
+          if(r.error) throw new Error(r.error);
+        }catch(ex){
+          t.done=prev; renderTodos();
+          alert('保存エラー: '+String(ex.message||ex));
+        }
         return;
       }
       var dl=e.target.closest('[data-todo-del]');
       if(dl){
         var id=dl.dataset.todoDel;
         if(!confirm('このタスクを削除しますか？')) return;
+        var prev=allTodos.slice();
         allTodos=allTodos.filter(function(x){ return x.id!==id; });
-        saveTodos(); renderTodos();
+        renderTodos();
+        try{
+          var r=await apiDeleteTodo(id);
+          if(r.error) throw new Error(r.error);
+        }catch(ex){
+          allTodos=prev; renderTodos();
+          alert('削除エラー: '+String(ex.message||ex));
+        }
       }
     });
+
     var _todoAddMode=false;
     document.getElementById('btnTodoAdd').addEventListener('click',function(){
       if(_todoAddMode) return;
@@ -613,18 +658,23 @@
       document.getElementById('viewTodo').insertBefore(row,document.getElementById('todoList'));
       var inp=document.getElementById('todoNewInput');
       inp.focus();
-      function commit(){
+      async function commit(){
         var txt=(inp.value||'').trim();
-        if(txt){
-          allTodos.push({id:'t-'+Date.now(),text:txt,done:false,createdAt:Date.now()});
-          saveTodos();
-        }
         row.parentNode.removeChild(row);
         _todoAddMode=false;
-        renderTodos();
+        if(!txt) return;
+        try{
+          var r=await apiSaveTodo({text:txt,done:false});
+          if(r.error) throw new Error(r.error);
+          allTodos.push(r.todo);
+          renderTodos();
+        }catch(ex){ alert('追加エラー: '+String(ex.message||ex)); }
       }
       document.getElementById('todoNewOk').addEventListener('click',commit);
-      inp.addEventListener('keydown',function(e){ if(e.key==='Enter') commit(); if(e.key==='Escape'){ row.parentNode.removeChild(row); _todoAddMode=false; } });
+      inp.addEventListener('keydown',function(e){
+        if(e.key==='Enter') commit();
+        if(e.key==='Escape'){ row.parentNode.removeChild(row); _todoAddMode=false; }
+      });
     });
 
     // ---- Init ----
