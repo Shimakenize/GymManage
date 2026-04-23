@@ -78,6 +78,21 @@
     .dc-amber { border-color: #78350f; }  .dc-amber .k { color: #fcd34d; } .dc-amber .v { color: #fde68a; }
     .empty { color: #94a3b8; padding: 24px; text-align: center; }
     .section-title { font-size: 0.9rem; font-weight: 600; color: #9ccce6; margin: 0 0 12px; }
+    /* ToDo */
+    .btn-todo-add { background: #2ed3c6; color: #06212b; border: none; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #1e2d3d; }
+    .todo-circle { flex-shrink: 0; width: 24px; height: 24px; border: 2px solid #4b9ecf; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .todo-circle.done { background: #4b9ecf; border-color: #4b9ecf; }
+    .todo-circle.done::after { content: '✓'; color: #06212b; font-size: 0.75rem; font-weight: 700; }
+    .todo-text { flex: 1; font-size: 0.9rem; color: #e5e7eb; line-height: 1.5; word-break: break-all; }
+    .todo-text.done { text-decoration: line-through; color: #4b5563; }
+    .todo-del { background: transparent; border: none; color: #4b5563; font-size: 1rem; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
+    .todo-del:hover { color: #ef4444; }
+    /* add-input */
+    .todo-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .todo-add-input { flex: 1; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 0.9rem; padding: 9px 12px; font-family: inherit; }
+    .todo-add-input:focus { outline: none; border-color: #2ed3c6; }
+    .todo-add-ok { background: #2ed3c6; color: #06212b; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.88rem; }
   </style>
 </head>
 <body>
@@ -93,6 +108,7 @@
   <div class="tab-bar">
     <button type="button" class="view-tab active" data-view="records">記録</button>
     <button type="button" class="view-tab" data-view="dash">ダッシュボード</button>
+    <button type="button" class="view-tab" data-view="todo">ToDo</button>
     <span class="tab-spacer"></span>
     <button type="button" class="btn-new" id="btnNew">新規</button>
   </div>
@@ -103,7 +119,7 @@
       <table class="rec-table">
         <thead>
           <tr>
-            <th>日付</th><th>開始</th><th>終了</th><th>有酸</th><th>TR1</th><th>TR2</th><th>Club</th><th>送迎</th><th></th>
+            <th>日付</th><th>開始</th><th>終了</th><th>有</th><th>1</th><th>2</th><th>C</th><th>送迎</th><th></th>
           </tr>
         </thead>
         <tbody id="tblBody"></tbody>
@@ -115,6 +131,15 @@
     <p class="section-title">直近30日</p>
     <div id="dashCards"></div>
     <div id="dashEmpty" class="empty" style="display:none;">データがありません</div>
+  </main>
+
+  <main id="viewTodo" class="panel" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <p class="section-title" style="margin:0;">ToDo</p>
+      <button type="button" class="btn-todo-add" id="btnTodoAdd">＋ 追加</button>
+    </div>
+    <div id="todoList"></div>
+    <div id="todoEmpty" class="empty" style="display:none;">やることはありません</div>
   </main>
 
   <!-- Popup -->
@@ -250,7 +275,9 @@
       });
       document.getElementById('viewRecords').style.display=name==='records'?'block':'none';
       document.getElementById('viewDash').style.display=name==='dash'?'block':'none';
+      document.getElementById('viewTodo').style.display=name==='todo'?'block':'none';
       if(name==='dash') loadDashboard();
+      if(name==='todo') renderTodos();
     }
     document.querySelectorAll('.view-tab').forEach(function(btn){
       btn.addEventListener('click',function(){ switchView(btn.getAttribute('data-view')); });
@@ -515,7 +542,7 @@
         if(v.mukae===true) mukaeCnt++;
       });
       var sougenTotal=okuriCnt+mukaeCnt;
-      var savingAmt=sougenTotal*700;
+      var savingAmt=sougenTotal*500;
       function card(k,v,cls){
         return '<div class="dash-card '+cls+'"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div></div>';
       }
@@ -531,11 +558,74 @@
         row(
           card('1回当たり',n?'¥'+Math.round(7678/n).toLocaleString('ja-JP'):'-','dc-green')+
           card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green')+
-          card('JY交通費節約','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green')
+          card('JY交通費節約(片道500)','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green')
         )+
         row(card('滞在合計',sumStay+'分','dc-purple')+card('平均滞在',avgStay+'分','dc-purple'))+
         row(card('有酸素平均',(sumAero/n).toFixed(1)+'人','dc-amber')+card('TR1 平均',(sumTr1/n).toFixed(1)+'人','dc-amber')+card('TR2 平均',(sumTr2/n).toFixed(1)+'人','dc-amber'));
     }
+
+    // ---- ToDo ----
+    var TODO_KEY='gymapp_todos';
+    var allTodos=[];
+    (function(){ try{ var s=localStorage.getItem(TODO_KEY); if(s) allTodos=JSON.parse(s); }catch(e){} })();
+    function saveTodos(){ try{ localStorage.setItem(TODO_KEY,JSON.stringify(allTodos)); }catch(e){} }
+    function renderTodos(){
+      var undone=allTodos.filter(function(t){ return !t.done; }).sort(function(a,b){ return a.createdAt-b.createdAt; });
+      var done=allTodos.filter(function(t){ return t.done; }).sort(function(a,b){ return a.createdAt-b.createdAt; });
+      var list=undone.concat(done);
+      var el=document.getElementById('todoList');
+      var empty=document.getElementById('todoEmpty');
+      if(list.length===0){ el.innerHTML=''; empty.style.display='block'; return; }
+      empty.style.display='none';
+      var html='';
+      list.forEach(function(t){
+        html+='<div class="todo-item" data-id="'+esc(t.id)+'">'+
+          '<div class="todo-circle'+(t.done?' done':'')+'" data-todo-toggle="'+esc(t.id)+'"></div>'+
+          '<span class="todo-text'+(t.done?' done':'')+'">'+esc(t.text)+'</span>'+
+          '<button class="todo-del" data-todo-del="'+esc(t.id)+'" title="削除">×</button>'+
+          '</div>';
+      });
+      el.innerHTML=html;
+    }
+    document.getElementById('todoList').addEventListener('click',function(e){
+      var tg=e.target.closest('[data-todo-toggle]');
+      if(tg){
+        var id=tg.dataset.todoToggle;
+        var t=allTodos.find(function(x){ return x.id===id; });
+        if(t){ t.done=!t.done; saveTodos(); renderTodos(); }
+        return;
+      }
+      var dl=e.target.closest('[data-todo-del]');
+      if(dl){
+        var id=dl.dataset.todoDel;
+        if(!confirm('このタスクを削除しますか？')) return;
+        allTodos=allTodos.filter(function(x){ return x.id!==id; });
+        saveTodos(); renderTodos();
+      }
+    });
+    var _todoAddMode=false;
+    document.getElementById('btnTodoAdd').addEventListener('click',function(){
+      if(_todoAddMode) return;
+      _todoAddMode=true;
+      var row=document.createElement('div');
+      row.className='todo-add-row';
+      row.innerHTML='<input class="todo-add-input" id="todoNewInput" placeholder="やること…" maxlength="200"><button class="todo-add-ok" id="todoNewOk">追加</button>';
+      document.getElementById('viewTodo').insertBefore(row,document.getElementById('todoList'));
+      var inp=document.getElementById('todoNewInput');
+      inp.focus();
+      function commit(){
+        var txt=(inp.value||'').trim();
+        if(txt){
+          allTodos.push({id:'t-'+Date.now(),text:txt,done:false,createdAt:Date.now()});
+          saveTodos();
+        }
+        row.parentNode.removeChild(row);
+        _todoAddMode=false;
+        renderTodos();
+      }
+      document.getElementById('todoNewOk').addEventListener('click',commit);
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter') commit(); if(e.key==='Escape'){ row.parentNode.removeChild(row); _todoAddMode=false; } });
+    });
 
     // ---- Init ----
     (async function main(){
