@@ -546,8 +546,8 @@
       });
       var sougenTotal=okuriCnt+mukaeCnt;
       var savingAmt=sougenTotal*500;
-      function card(k,v,cls){
-        return '<div class="dash-card '+cls+'"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div></div>';
+      function card(k,v,cls,sub){
+        return '<div class="dash-card '+cls+'"><div class="k">'+esc(k)+(sub?'<br><span style="font-size:0.65rem;opacity:0.7;">'+esc(sub)+'</span>':'')+'</div><div class="v">'+esc(v)+'</div></div>';
       }
       function row(html){ return '<div class="dash-row">'+html+'</div>'; }
       var avgStay=stayCnt?Math.round(sumStay/stayCnt):0;
@@ -559,9 +559,9 @@
           card('送迎回数',sougenTotal+'回','dc-blue')
         )+
         row(
-          card('1回当たり',n?'¥'+Math.round(7678/n).toLocaleString('ja-JP'):'-','dc-green')+
-          card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green')+
-          card('JY交通費節約(片道500)','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green')
+          card('1回当たり',n?'¥'+Math.round(8758/n).toLocaleString('ja-JP'):'-','dc-green','月額8758円')+
+          card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green','月額1650円')+
+          card('JY交通費節約','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green','片道500円')
         )+
         row(card('滞在合計',sumStay+'分','dc-purple')+card('平均滞在',avgStay+'分','dc-purple'))+
         row(card('有酸素平均',(sumAero/n).toFixed(1)+'人','dc-amber')+card('TR1 平均',(sumTr1/n).toFixed(1)+'人','dc-amber')+card('TR2 平均',(sumTr2/n).toFixed(1)+'人','dc-amber'));
