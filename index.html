@@ -159,6 +159,7 @@
     window.__API_BASE__ = window.__CONFIG_URL__;
     window.__LIFF_ID__ = '';
     window.__APP_VERSION__ = '';
+    window.__DEPLOY_NUM__ = '';
 
     // ---- Utilities ----
     function todayJstYmd() {
@@ -204,10 +205,12 @@
       var c=await r.json();
       window.__LIFF_ID__=c.liff_id||'';
       window.__APP_VERSION__=c.version||'';
+      window.__DEPLOY_NUM__=c.deploy_num||'';
     }
     function applyVersionLabel() {
       var v=String(window.__APP_VERSION__||'').trim();
-      var t=v?'v'+v:'';
+      var d=String(window.__DEPLOY_NUM__||'').trim();
+      var t=v?'v'+v+(d?'('+d+')':''):'';
       document.getElementById('verInline').textContent=t;
       document.title='Gym'+(t?' '+t:'');
     }
@@ -567,6 +570,7 @@
     // ---- ToDo ----
     var allTodos=[];
     var todoLoaded=false;
+    var todoSavingSet=new Set();
 
     async function apiListTodos(){
       return (await fetchWithAuth('api/todos')).json();
@@ -595,11 +599,20 @@
       empty.style.display='none';
       var html='';
       list.forEach(function(t){
-        html+='<div class="todo-item">'+
-          '<div class="todo-circle'+(t.done?' done':'')+'" data-todo-toggle="'+esc(t.id)+'"></div>'+
-          '<span class="todo-text'+(t.done?' done':'')+'">'+esc(t.text)+'</span>'+
-          '<button class="todo-del" data-todo-del="'+esc(t.id)+'" title="削除">×</button>'+
-          '</div>';
+        var saving=todoSavingSet.has(t.id);
+        if(saving){
+          html+='<div class="todo-item">'+
+            '<div class="todo-circle'+(t.done?' done':'')+'"></div>'+
+            '<span class="todo-text'+(t.done?' done':'')+'" style="flex:1">'+esc(t.text)+'</span>'+
+            '<span class="saving-txt">更新中…</span>'+
+            '</div>';
+        } else {
+          html+='<div class="todo-item">'+
+            '<div class="todo-circle'+(t.done?' done':'')+'" data-todo-toggle="'+esc(t.id)+'"></div>'+
+            '<span class="todo-text'+(t.done?' done':'')+'">'+esc(t.text)+'</span>'+
+            '<button class="todo-del" data-todo-del="'+esc(t.id)+'" title="削除">×</button>'+
+            '</div>';
+        }
       });
       el.innerHTML=html;
     }
@@ -618,32 +631,40 @@
       var tg=e.target.closest('[data-todo-toggle]');
       if(tg){
         var id=tg.dataset.todoToggle;
+        if(todoSavingSet.has(id)) return;
         var t=allTodos.find(function(x){ return x.id===id; });
         if(!t) return;
         var prev=t.done;
-        t.done=!t.done; renderTodos();
+        t.done=!t.done;
+        todoSavingSet.add(id); renderTodos();
         try{
           var r=await apiSaveTodo({id:t.id,text:t.text,done:t.done});
           if(r.error) throw new Error(r.error);
         }catch(ex){
-          t.done=prev; renderTodos();
+          t.done=prev;
           alert('保存エラー: '+String(ex.message||ex));
+        }finally{
+          todoSavingSet.delete(id); renderTodos();
         }
         return;
       }
       var dl=e.target.closest('[data-todo-del]');
       if(dl){
         var id=dl.dataset.todoDel;
+        if(todoSavingSet.has(id)) return;
         if(!confirm('このタスクを削除しますか？')) return;
         var prev=allTodos.slice();
+        todoSavingSet.add(id);
         allTodos=allTodos.filter(function(x){ return x.id!==id; });
         renderTodos();
         try{
           var r=await apiDeleteTodo(id);
           if(r.error) throw new Error(r.error);
         }catch(ex){
-          allTodos=prev; renderTodos();
+          allTodos=prev;
           alert('削除エラー: '+String(ex.message||ex));
+        }finally{
+          todoSavingSet.delete(id); renderTodos();
         }
       }
     });
@@ -652,6 +673,7 @@
     document.getElementById('btnTodoAdd').addEventListener('click',function(){
       if(_todoAddMode) return;
       _todoAddMode=true;
+      var addBtn=document.getElementById('btnTodoAdd');
       var row=document.createElement('div');
       row.className='todo-add-row';
       row.innerHTML='<input class="todo-add-input" id="todoNewInput" placeholder="やること…" maxlength="200"><button class="todo-add-ok" id="todoNewOk">追加</button>';
@@ -660,15 +682,20 @@
       inp.focus();
       async function commit(){
         var txt=(inp.value||'').trim();
-        row.parentNode.removeChild(row);
-        _todoAddMode=false;
-        if(!txt) return;
+        if(!txt){ row.parentNode.removeChild(row); _todoAddMode=false; return; }
+        var okBtn=document.getElementById('todoNewOk');
+        inp.disabled=true; okBtn.disabled=true; okBtn.textContent='追加中…';
         try{
           var r=await apiSaveTodo({text:txt,done:false});
           if(r.error) throw new Error(r.error);
           allTodos.push(r.todo);
+          row.parentNode.removeChild(row);
+          _todoAddMode=false;
           renderTodos();
-        }catch(ex){ alert('追加エラー: '+String(ex.message||ex)); }
+        }catch(ex){
+          inp.disabled=false; okBtn.disabled=false; okBtn.textContent='追加';
+          alert('追加エラー: '+String(ex.message||ex));
+        }
       }
       document.getElementById('todoNewOk').addEventListener('click',commit);
       inp.addEventListener('keydown',function(e){
