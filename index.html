@@ -376,7 +376,8 @@
         var v=sorted[i];
         var saving=savingSet.has(v.id);
         var ymd=String(v.visit_date||'').slice(0,10);
-        var dateDisp=ymd.slice(5).replace('-','/');
+        var _dow=ymd?'日月火水木金土'[new Date(ymd+'T00:00:00+09:00').getDay()]:'';
+        var dateDisp=ymd.slice(5).replace('-','/')+(_dow?'('+_dow+')':'');
         var clubHtml=v.club?'<span class="club-on">✓</span>':'<span class="club-off">−</span>';
         var okuriOn=v.okuri===true; var mukaeOn=v.mukae===true;
         var sgHtml='<div class="sougen-cell">'+
