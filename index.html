@@ -69,7 +69,8 @@
     .popup-date-input { width: 100%; padding: 12px; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 1rem; text-align: center; }
     /* Dashboard */
     .dash-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .dash-card { flex: 1; min-width: 0; border: 1px solid; border-radius: 10px; padding: 12px; background: #111827; }
+    .dash-card { flex: 1; min-width: 0; border: 1px solid; border-radius: 10px; padding: 12px; background: #111827; position: relative; }
+    .achieved-badge { position: absolute; top: 4px; right: 6px; font-size: 0.85rem; }
     .dash-card .k { font-size: 0.7rem; }
     .dash-card .v { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
     .dc-blue  { border-color: #1d4ed8; }  .dc-blue  .k { color: #93c5fd; } .dc-blue  .v { color: #bfdbfe; }
@@ -547,11 +548,14 @@
       });
       var sougenTotal=okuriCnt+mukaeCnt;
       var savingAmt=sougenTotal*500;
-      function card(k,v,cls,sub){
-        return '<div class="dash-card '+cls+'"><div class="k">'+esc(k)+(sub?'<br><span style="font-size:0.65rem;opacity:0.7;">'+esc(sub)+'</span>':'')+'</div><div class="v">'+esc(v)+'</div></div>';
+      function card(k,v,cls,sub,achieved){
+        var badge=achieved?'<div class="achieved-badge">🏆</div>':'';
+        return '<div class="dash-card '+cls+'">'+badge+'<div class="k">'+esc(k)+(sub?'<br><span style="font-size:0.65rem;opacity:0.7;">'+esc(sub)+'</span>':'')+'</div><div class="v">'+esc(v)+'</div></div>';
       }
       function row(html){ return '<div class="dash-row">'+html+'</div>'; }
       var avgStay=stayCnt?Math.round(sumStay/stayCnt):0;
+      var perGym=n?(8758/n):9999;
+      var perClub=clubCnt?(1650/clubCnt):9999;
       document.getElementById('dashEmpty').style.display='none';
       document.getElementById('dashCards').innerHTML=
         row(
@@ -560,9 +564,9 @@
           card('送迎回数',sougenTotal+'回','dc-blue')
         )+
         row(
-          card('1回当たり',n?'¥'+Math.round(8758/n).toLocaleString('ja-JP'):'-','dc-green','月額8758円')+
-          card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green','月額1650円')+
-          card('JY交通費節約','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green','片道500円')
+          card('1回当たり',n?'¥'+Math.round(8758/n).toLocaleString('ja-JP'):'-','dc-green','月額8758円', perGym < 600)+
+          card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green','月額1650円', perClub < 420)+
+          card('JY交通費節約','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green','片道500円', savingAmt > 8758)
         )+
         row(card('滞在合計',sumStay+'分','dc-purple')+card('平均滞在',avgStay+'分','dc-purple'))+
         row(card('有酸素平均',(sumAero/n).toFixed(1)+'人','dc-amber')+card('TR1 平均',(sumTr1/n).toFixed(1)+'人','dc-amber')+card('TR2 平均',(sumTr2/n).toFixed(1)+'人','dc-amber'));
