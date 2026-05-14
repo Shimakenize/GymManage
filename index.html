@@ -68,6 +68,9 @@
     /* Date input in popup */
     .popup-date-input { width: 100%; padding: 12px; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 1rem; text-align: center; }
     /* Dashboard */
+    .dash-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .dash-header .section-title { margin: 0; }
+    .month-sel { background: #0b1220; border: 1px solid #2b4258; color: #9ccce6; border-radius: 8px; padding: 5px 8px; font-size: 0.8rem; font-family: inherit; cursor: pointer; }
     .dash-row { display: flex; gap: 10px; margin-bottom: 10px; }
     .dash-card { flex: 1; min-width: 0; border: 1px solid; border-radius: 10px; padding: 12px; background: #111827; position: relative; }
     .achieved-badge { position: absolute; top: 4px; right: 6px; font-size: 0.85rem; }
@@ -129,7 +132,10 @@
   </main>
 
   <main id="viewDash" class="panel" style="display:none;">
-    <p class="section-title">直近30日</p>
+    <div class="dash-header">
+      <p class="section-title" id="dashTitle">直近30日</p>
+      <select id="monthSel" class="month-sel"></select>
+    </div>
     <div id="dashCards"></div>
     <div id="dashEmpty" class="empty" style="display:none;">データがありません</div>
   </main>
@@ -271,6 +277,7 @@
     var allRecords=[];
     var savingSet=new Set();
     var dashLoaded=false;
+    var dashMode='30days';
 
     // ---- Tab switching ----
     function switchView(name){
@@ -523,16 +530,51 @@
       btn.disabled=false;
     });
 
+    // ---- Dashboard month selector ----
+    function buildMonthOptions(){
+      var sel=document.getElementById('monthSel');
+      if(sel.options.length>0) return;
+      var html='<option value="30days">直近30日</option>';
+      var now=new Date();
+      var curY=now.getFullYear(), curM=now.getMonth()+1;
+      var y=2026, m=4;
+      while(y<curY||(y===curY&&m<=curM)){
+        var val=y+'-'+String(m).padStart(2,'0');
+        html+='<option value="'+val+'">'+y+'年'+m+'月</option>';
+        m++; if(m>12){m=1;y++;}
+      }
+      sel.innerHTML=html;
+      sel.value=dashMode;
+    }
+    document.getElementById('monthSel').addEventListener('change',function(){
+      dashMode=this.value;
+      dashLoaded=false;
+      document.getElementById('dashCards').innerHTML='';
+      document.getElementById('dashEmpty').style.display='none';
+      loadDashboard();
+    });
+
     // ---- Dashboard ----
     async function loadDashboard(){
+      buildMonthOptions();
       if(dashLoaded) return;
-      var today=todayJstYmd();
-      var from=(function(){
-        var p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()-30*86400000));
-        var y='',m='',d=''; p.forEach(function(x){ if(x.type==='year')y=x.value; if(x.type==='month')m=x.value; if(x.type==='day')d=x.value; });
-        return y+'-'+m+'-'+d;
-      })();
-      var j; try{ j=await apiListVisits(from,today); }catch(e){ document.getElementById('dashEmpty').style.display='block'; return; }
+      var from, to;
+      if(dashMode==='30days'){
+        to=todayJstYmd();
+        from=(function(){
+          var p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()-30*86400000));
+          var y='',m='',d=''; p.forEach(function(x){ if(x.type==='year')y=x.value; if(x.type==='month')m=x.value; if(x.type==='day')d=x.value; });
+          return y+'-'+m+'-'+d;
+        })();
+        document.getElementById('dashTitle').textContent='直近30日';
+      } else {
+        var pts=dashMode.split('-');
+        var yr=parseInt(pts[0]), mo=parseInt(pts[1]);
+        from=dashMode+'-01';
+        to=dashMode+'-'+String(new Date(yr,mo,0).getDate()).padStart(2,'0');
+        document.getElementById('dashTitle').textContent=yr+'年'+mo+'月';
+      }
+      var j; try{ j=await apiListVisits(from,to); }catch(e){ document.getElementById('dashEmpty').style.display='block'; return; }
       if(j.error||!j.ok||!j.visits||!j.visits.length){ document.getElementById('dashEmpty').style.display='block'; return; }
       dashLoaded=true;
       var rows=j.visits, n=rows.length, sumStay=0, stayCnt=0, sumAero=0, sumTr1=0, sumTr2=0, clubCnt=0, okuriCnt=0, mukaeCnt=0;
