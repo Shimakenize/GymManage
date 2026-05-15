@@ -386,7 +386,7 @@
         var ymd=String(v.visit_date||'').slice(0,10);
         var _dow=ymd?'日月火水木金土'[new Date(ymd+'T00:00:00+09:00').getDay()]:'';
         var dateDisp=ymd.slice(5).replace('-','/')+(_dow?'('+_dow+')':'');
-        var clubHtml=v.club?'<span class="club-on">✓</span>':'<span class="club-off">−</span>';
+        var clubBtn='<button class="sg-btn'+(v.club?' on':'')+'" data-action="toggle-club" data-id="'+esc(v.id)+'"'+(saving?' disabled':'')+'>'+( v.club?'✓':'C')+'</button>';
         var okuriOn=v.okuri===true; var mukaeOn=v.mukae===true;
         var sgHtml='<div class="sougen-cell">'+
           '<button class="sg-btn'+(okuriOn?' on':'')+'" data-action="toggle-okuri" data-id="'+esc(v.id)+'"'+(saving?' disabled':'')+'>送</button>'+
@@ -401,7 +401,7 @@
             '<td>'+esc(v.aerobic_minutes||0)+'</td>'+
             '<td>'+esc(v.tr1_people||0)+'</td>'+
             '<td>'+esc(v.tr2_people||0)+'</td>'+
-            '<td>'+clubHtml+'</td>'+
+            '<td>'+clubBtn+'</td>'+
             '<td>'+sgHtml+'</td>'+
             '<td><span class="saving-txt">更新中…</span></td>'+
             '</tr>';
@@ -417,7 +417,7 @@
             cell('aerobic_minutes',esc(v.aerobic_minutes||0))+
             cell('tr1_people',esc(v.tr1_people||0))+
             cell('tr2_people',esc(v.tr2_people||0))+
-            cell('club',clubHtml)+
+            '<td>'+clubBtn+'</td>'+
             '<td>'+sgHtml+'</td>'+
             '<td><button class="btn-delete" data-action="delete" data-id="'+id+'">Del</button></td>'+
             '</tr>';
@@ -444,6 +444,13 @@
           dashLoaded=false;
           renderRecordsTable();
         }catch(ex){ alert('削除エラー: '+String(ex.message||ex)); el.disabled=false; }
+        return;
+      }
+
+      if(action==='toggle-club'){
+        var rec=allRecords.find(function(v){ return v.id===id; });
+        if(!rec) return;
+        await saveField(id, 'club', !rec.club);
         return;
       }
 
