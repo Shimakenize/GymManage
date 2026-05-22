@@ -606,21 +606,26 @@
       var perGym=n?(8758/n):9999;
       var perClub=clubCnt?(1650/clubCnt):9999;
 
-      var maxCrowdRec=null, maxCrowdTotal=-1;
-      rows.forEach(function(v){
+      var crowdRows = rows.map(function(v){
         var t=(parseInt(v.aerobic_minutes,10)||0)+(parseInt(v.tr1_people,10)||0)+(parseInt(v.tr2_people,10)||0);
-        if(t>maxCrowdTotal){ maxCrowdTotal=t; maxCrowdRec=v; }
-      });
-      var crowdHtml='';
-      if(maxCrowdRec && maxCrowdTotal>=0){
-        var ymd=String(maxCrowdRec.visit_date||'').slice(0,10);
-        var dow=ymd?'日月火水木金土'[new Date(ymd+'T00:00:00+09:00').getDay()]:'';
-        var tStr=(maxCrowdRec.time_start||'--:--')+' 〜 '+(maxCrowdRec.time_end||'--:--');
-        var aero=parseInt(maxCrowdRec.aerobic_minutes,10)||0;
-        var tr1=parseInt(maxCrowdRec.tr1_people,10)||0;
-        var tr2=parseInt(maxCrowdRec.tr2_people,10)||0;
-        crowdHtml=row('<div class="dash-card dc-amber"><div class="k">混む時間帯 (最大人数の記録)</div><div class="v" style="font-size:1rem;margin-top:6px;">'+dow+'曜日 '+tStr+'<br><span style="font-size:0.85rem;font-weight:normal;color:#d1d5db;">有酸素: '+aero+'人 / TR1: '+tr1+'人 / TR2: '+tr2+'人</span></div></div>');
+        return {rec:v, total:t};
+      }).filter(function(item){ return item.total > 0; });
+      crowdRows.sort(function(a,b){ return b.total - a.total; });
+      
+      var crowdCards = '';
+      for(var i=0; i<3 && i<crowdRows.length; i++){
+        var item = crowdRows[i];
+        var v = item.rec;
+        var ymd = String(v.visit_date||'').slice(0,10);
+        var dow = ymd ? '日月火水木金土'[new Date(ymd+'T00:00:00+09:00').getDay()] : '';
+        var tStr = (v.time_start||'--:--') + '-' + (v.time_end||'--:--');
+        var aero = parseInt(v.aerobic_minutes,10)||0;
+        var tr1 = parseInt(v.tr1_people,10)||0;
+        var tr2 = parseInt(v.tr2_people,10)||0;
+        var subText = '計'+item.total+'人(有'+aero+'/T1:'+tr1+'/T2:'+tr2+')';
+        crowdCards += card('混雑 Best ' + (i+1), dow + ' ' + tStr, 'dc-amber', subText);
       }
+      var crowdHtml = crowdCards ? row(crowdCards) : '';
 
       document.getElementById('dashEmpty').style.display='none';
       document.getElementById('dashCards').innerHTML=
