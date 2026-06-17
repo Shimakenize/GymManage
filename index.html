@@ -19,8 +19,7 @@
     .view-tab { background: transparent; border: none; color: #94a3b8; padding: 11px 14px; font-size: 0.88rem; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; font-family: inherit; align-self: stretch; }
     .view-tab:hover { color: #e5e7eb; }
     .view-tab.active { color: #fff; border-bottom-color: #2ed3c6; font-weight: 600; }
-    .tab-spacer { flex: 1; }
-    .btn-new { background: #2ed3c6; color: #06212b; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-new { background: #2ed3c6; color: #06212b; border: none; border-radius: 8px; padding: 7px 16px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
     .btn-new:disabled { opacity: 0.55; cursor: not-allowed; }
     .panel { padding: 12px 12px; max-width: 720px; margin: 0 auto; }
     /* Records table */
@@ -35,9 +34,6 @@
     .cell-edit:active { background: #1e3040; }
     .saving-txt { font-size: 0.72rem; color: #9ccce6; animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-    .club-on { color: #93c5fd; font-weight: 700; }
-    .club-off { color: #4b5563; }
-    /* 送迎ボタン */
     .sougen-cell { display: flex; gap: 4px; }
     .sg-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid #2b4258; background: #1a2535; color: #6b7280; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: inherit; padding: 0; line-height: 26px; text-align: center; }
     .sg-btn.on { background: #16a34a; color: #fff; border-color: #16a34a; }
@@ -68,9 +64,9 @@
     /* Date input in popup */
     .popup-date-input { width: 100%; padding: 12px; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 1rem; text-align: center; }
     /* Dashboard */
-    .dash-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .dash-header .section-title { margin: 0; }
-    .month-sel { background: #0b1220; border: 1px solid #2b4258; color: #9ccce6; border-radius: 8px; padding: 5px 8px; font-size: 0.8rem; font-family: inherit; cursor: pointer; }
+    .dash-top-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .month-sel { flex: 1; background: #0b1220; border: 1px solid #2b4258; color: #9ccce6; border-radius: 8px; padding: 5px 8px; font-size: 0.8rem; font-family: inherit; cursor: pointer; }
+    .dash-sep { border: none; border-top: 1px solid #1e2d3d; margin: 14px 0 12px; }
     .dash-row { display: flex; gap: 10px; margin-bottom: 10px; }
     .dash-card { flex: 1; min-width: 0; border: 1px solid; border-radius: 10px; padding: 12px; background: #111827; position: relative; }
     .achieved-badge { position: absolute; top: 4px; right: 6px; font-size: 0.85rem; }
@@ -78,10 +74,10 @@
     .dash-card .v { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
     .dc-blue  { border-color: #1d4ed8; }  .dc-blue  .k { color: #93c5fd; } .dc-blue  .v { color: #bfdbfe; }
     .dc-green { border-color: #065f46; }  .dc-green .k { color: #6ee7b7; } .dc-green .v { color: #a7f3d0; }
-    .dc-purple{ border-color: #4c1d95; }  .dc-purple.k { color: #c4b5fd; } .dc-purple .v { color: #ddd6fe; }
+    .dc-purple{ border-color: #4c1d95; }  .dc-purple .k { color: #c4b5fd; } .dc-purple .v { color: #ddd6fe; }
     .dc-amber { border-color: #78350f; }  .dc-amber .k { color: #fcd34d; } .dc-amber .v { color: #fde68a; }
     .empty { color: #94a3b8; padding: 24px; text-align: center; }
-    .section-title { font-size: 0.9rem; font-weight: 600; color: #9ccce6; margin: 0 0 12px; }
+    .section-title { font-size: 0.9rem; font-weight: 600; color: #9ccce6; margin: 0 0 10px; }
     /* ToDo */
     .btn-todo-add { background: #2ed3c6; color: #06212b; border: none; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; }
     .todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #1e2d3d; }
@@ -92,7 +88,6 @@
     .todo-text.done { text-decoration: line-through; color: #4b5563; }
     .todo-del { background: transparent; border: none; color: #4b5563; font-size: 1rem; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
     .todo-del:hover { color: #ef4444; }
-    /* add-input */
     .todo-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
     .todo-add-input { flex: 1; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 0.9rem; padding: 9px 12px; font-family: inherit; }
     .todo-add-input:focus { outline: none; border-color: #2ed3c6; }
@@ -110,34 +105,51 @@
   <div class="meta-strip" id="metaStrip">読み込み中…</div>
 
   <div class="tab-bar">
-    <button type="button" class="view-tab active" data-view="records">記録</button>
-    <button type="button" class="view-tab" data-view="dash">ダッシュボード</button>
+    <button type="button" class="view-tab active" data-view="dash">ダッシュボード</button>
+    <button type="button" class="view-tab" data-view="records">記録</button>
     <button type="button" class="view-tab" data-view="todo">ToDo</button>
-    <span class="tab-spacer"></span>
-    <button type="button" class="btn-new" id="btnNew">新規</button>
   </div>
 
-  <main id="viewRecords" class="panel">
+  <!-- Dashboard (default) -->
+  <main id="viewDash" class="panel">
+    <div class="dash-top-row">
+      <select id="monthSel" class="month-sel"></select>
+      <button type="button" class="btn-new" id="btnNew">新規</button>
+    </div>
+    <!-- Latest 1 record -->
+    <div class="table-wrap" id="dashLatestWrap" style="display:none;">
+      <table class="rec-table">
+        <thead><tr><th>日付</th><th>開始</th><th>終了</th><th>有</th><th>1</th><th>2</th><th>C</th><th>送迎</th><th></th></tr></thead>
+        <tbody id="dashLatestBody"></tbody>
+      </table>
+    </div>
+    <div id="dashLatestEmpty" class="empty" style="display:none;">記録がありません</div>
+    <hr class="dash-sep">
+    <!-- Stats cards -->
+    <p class="section-title" id="dashTitle" style="display:none;"></p>
+    <div id="dashCards"></div>
+    <div id="dashEmpty" class="empty" style="display:none;">データがありません</div>
+    <hr class="dash-sep">
+    <!-- Month full records -->
+    <p class="section-title" id="dashMonthTableTitle" style="display:none;"></p>
+    <div class="table-wrap" id="dashMonthTableWrap" style="display:none;">
+      <table class="rec-table">
+        <thead><tr><th>日付</th><th>開始</th><th>終了</th><th>有</th><th>1</th><th>2</th><th>C</th><th>送迎</th><th></th></tr></thead>
+        <tbody id="dashMonthBody"></tbody>
+      </table>
+    </div>
+    <div id="dashMonthEmpty" class="empty" style="display:none;">記録がありません</div>
+  </main>
+
+  <!-- Records (lazy loaded) -->
+  <main id="viewRecords" class="panel" style="display:none;">
     <div id="recEmpty" class="empty" style="display:none;">記録がありません</div>
     <div class="table-wrap" id="tableWrap" style="display:none;">
       <table class="rec-table">
-        <thead>
-          <tr>
-            <th>日付</th><th>開始</th><th>終了</th><th>有</th><th>1</th><th>2</th><th>C</th><th>送迎</th><th></th>
-          </tr>
-        </thead>
+        <thead><tr><th>日付</th><th>開始</th><th>終了</th><th>有</th><th>1</th><th>2</th><th>C</th><th>送迎</th><th></th></tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
     </div>
-  </main>
-
-  <main id="viewDash" class="panel" style="display:none;">
-    <div class="dash-header">
-      <p class="section-title" id="dashTitle">直近30日</p>
-      <select id="monthSel" class="month-sel"></select>
-    </div>
-    <div id="dashCards"></div>
-    <div id="dashEmpty" class="empty" style="display:none;">データがありません</div>
   </main>
 
   <main id="viewTodo" class="panel" style="display:none;">
@@ -204,6 +216,10 @@
       var m=Math.round((parseInt(p[1])||0)/5)*5;
       if(m>=60){m=0;h=(h+1)%24;}
       return {h:h,m:m};
+    }
+    function currentYM() {
+      var now=new Date();
+      return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
     }
 
     // ---- Config & Auth ----
@@ -274,20 +290,23 @@
     function setMeta(s){ document.getElementById('metaStrip').textContent=s; }
 
     // ---- State ----
-    var allRecords=[];
+    var allRecords=[];      // records tab (lazy)
+    var dashRecords=[];     // dashboard
     var savingSet=new Set();
+    var recordsLoaded=false;
     var dashLoaded=false;
-    var dashMode='30days';
+    var dashMode=currentYM();
 
     // ---- Tab switching ----
     function switchView(name){
       document.querySelectorAll('.view-tab').forEach(function(t){
         t.classList.toggle('active',t.getAttribute('data-view')===name);
       });
-      document.getElementById('viewRecords').style.display=name==='records'?'block':'none';
       document.getElementById('viewDash').style.display=name==='dash'?'block':'none';
+      document.getElementById('viewRecords').style.display=name==='records'?'block':'none';
       document.getElementById('viewTodo').style.display=name==='todo'?'block':'none';
       if(name==='dash') loadDashboard();
+      if(name==='records'&&!recordsLoaded) loadRecords();
       if(name==='todo') loadTodos();
     }
     document.querySelectorAll('.view-tab').forEach(function(btn){
@@ -297,9 +316,7 @@
     // ---- Popup system ----
     var _popResolve=null;
     var _popType=null;
-
     function _openPopup(title, contentHtml, type, actions) {
-      // actions: 'ok-cancel' | 'cancel' | 'none'
       document.getElementById('popupTitle').textContent=title;
       document.getElementById('popupContent').innerHTML=contentHtml;
       var okBtn=document.getElementById('popupOk');
@@ -326,7 +343,6 @@
         _resolvePopup(h+':'+m);
       }
     });
-
     function popupDate(val){
       var p=_openPopup('日付','<input type="date" id="popDate" class="popup-date-input">','date','ok-cancel');
       setTimeout(function(){ var i=document.getElementById('popDate'); if(i) i.value=val||todayJstYmd(); },0);
@@ -367,18 +383,14 @@
       return p;
     }
 
-    // ---- Records table ----
-    function renderRecordsTable(){
-      var sorted=allRecords.slice().sort(function(a,b){
+    // ---- Shared row builder ----
+    function buildTableRowsHtml(records) {
+      var sorted=records.slice().sort(function(a,b){
         var da=String(a.visit_date||'').slice(0,10);
         var db=String(b.visit_date||'').slice(0,10);
         if(da!==db) return da>db?-1:1;
         return String(a.time_start||'')>String(b.time_start||'')?-1:1;
       });
-      var empty=document.getElementById('recEmpty');
-      var wrap=document.getElementById('tableWrap');
-      if(sorted.length===0){ empty.style.display='block'; wrap.style.display='none'; return; }
-      empty.style.display='none'; wrap.style.display='block';
       var html='';
       for(var i=0;i<sorted.length;i++){
         var v=sorted[i];
@@ -392,9 +404,8 @@
           '<button class="sg-btn'+(okuriOn?' on':'')+'" data-action="toggle-okuri" data-id="'+esc(v.id)+'"'+(saving?' disabled':'')+'>送</button>'+
           '<button class="sg-btn'+(mukaeOn?' on':'')+'" data-action="toggle-mukae" data-id="'+esc(v.id)+'"'+(saving?' disabled':'')+'>迎</button>'+
           '</div>';
-        var rowCls=saving?' class="row-saving"':'';
         if(saving){
-          html+='<tr'+rowCls+'>'+
+          html+='<tr class="row-saving">'+
             '<td>'+esc(dateDisp)+'</td>'+
             '<td>'+esc(v.time_start||'−')+'</td>'+
             '<td>'+esc(v.time_end||'−')+'</td>'+
@@ -407,184 +418,57 @@
             '</tr>';
         } else {
           var id=esc(v.id);
-          function cell(field,content){
-            return '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="'+field+'">'+content+'</td>';
-          }
           html+='<tr>'+
-            cell('visit_date',esc(dateDisp))+
-            cell('time_start',esc(v.time_start||'−'))+
-            cell('time_end',esc(v.time_end||'−'))+
-            cell('aerobic_minutes',esc(v.aerobic_minutes||0))+
-            cell('tr1_people',esc(v.tr1_people||0))+
-            cell('tr2_people',esc(v.tr2_people||0))+
+            '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="visit_date">'+esc(dateDisp)+'</td>'+
+            '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="time_start">'+esc(v.time_start||'−')+'</td>'+
+            '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="time_end">'+esc(v.time_end||'−')+'</td>'+
+            '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="aerobic_minutes">'+esc(v.aerobic_minutes||0)+'</td>'+
+            '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="tr1_people">'+esc(v.tr1_people||0)+'</td>'+
+            '<td class="cell-edit" data-action="edit" data-id="'+id+'" data-field="tr2_people">'+esc(v.tr2_people||0)+'</td>'+
             '<td>'+clubBtn+'</td>'+
             '<td>'+sgHtml+'</td>'+
             '<td><button class="btn-delete" data-action="delete" data-id="'+id+'">Del</button></td>'+
             '</tr>';
         }
       }
-      document.getElementById('tblBody').innerHTML=html;
+      return html;
     }
 
-    // ---- Event delegation on table ----
-    document.getElementById('tblBody').addEventListener('click',async function(e){
-      var el=e.target.closest('[data-action]');
-      if(!el) return;
-      var action=el.dataset.action;
-      var id=el.dataset.id;
-      if(savingSet.has(id)) return;
-
-      if(action==='delete'){
-        if(!confirm('この記録を削除しますか？')) return;
-        el.disabled=true;
-        try{
-          var r=await apiDeleteVisit(id);
-          if(r.error) throw new Error(r.error);
-          allRecords=allRecords.filter(function(v){ return v.id!==id; });
-          dashLoaded=false;
-          renderRecordsTable();
-        }catch(ex){ alert('削除エラー: '+String(ex.message||ex)); el.disabled=false; }
-        return;
-      }
-
-      if(action==='toggle-club'){
-        var rec=allRecords.find(function(v){ return v.id===id; });
-        if(!rec) return;
-        await saveField(id, 'club', !rec.club);
-        return;
-      }
-
-      if(action==='toggle-okuri'||action==='toggle-mukae'){
-        var field=action==='toggle-okuri'?'okuri':'mukae';
-        var rec=allRecords.find(function(v){ return v.id===id; });
-        if(!rec) return;
-        await saveField(id, field, !rec[field]);
-        return;
-      }
-
-      if(action==='edit'){
-        var field=el.dataset.field;
-        var rec=allRecords.find(function(v){ return v.id===id; });
-        if(!rec) return;
-        var newVal=null;
-        if(field==='visit_date')        newVal=await popupDate(rec.visit_date);
-        else if(field==='time_start')   newVal=await popupTime('開始時刻', rec.time_start||nowJstHm());
-        else if(field==='time_end')     newVal=await popupTime('終了時刻', rec.time_end||addMinutes(rec.time_start||nowJstHm(),90));
-        else if(field==='aerobic_minutes') newVal=await popupCount('有酸素人数', rec.aerobic_minutes||0);
-        else if(field==='tr1_people')   newVal=await popupCount('TR1 人数', rec.tr1_people||0);
-        else if(field==='tr2_people')   newVal=await popupCount('TR2 人数', rec.tr2_people||0);
-        else if(field==='club')         newVal=await popupClub(rec.club||false);
-        if(newVal===null) return;
-        await saveField(id, field, newVal);
-      }
-    });
-
-    async function saveField(id, field, newVal){
-      var idx=allRecords.findIndex(function(v){ return v.id===id; });
-      if(idx<0) return;
-      var prev=Object.assign({},allRecords[idx]);
-      var upd=Object.assign({},prev);
-      upd[field]=newVal;
-      allRecords[idx]=upd;
-      savingSet.add(id);
-      renderRecordsTable();
-      try{
-        var r=await apiSaveVisit({
-          id:upd.id, visit_date:upd.visit_date,
-          time_start:upd.time_start||'', time_end:upd.time_end||'',
-          aerobic_minutes:upd.aerobic_minutes||0,
-          tr1_people:upd.tr1_people||0, tr2_people:upd.tr2_people||0,
-          club:upd.club||false, okuri:upd.okuri||false, mukae:upd.mukae||false,
-        });
-        if(r.error) throw new Error(r.error);
-        allRecords[idx]=Object.assign({},r.visit,{
-          club: r.visit.club===true,
-          okuri: r.visit.okuri===true,
-          mukae: r.visit.mukae===true,
-        });
-        dashLoaded=false;
-      }catch(e){
-        allRecords[idx]=prev;
-        alert('保存エラー: '+(e.message||e));
-      }finally{
-        savingSet.delete(id);
-        renderRecordsTable();
-      }
+    // ---- Render functions ----
+    function renderRecordsTable(){
+      var empty=document.getElementById('recEmpty');
+      var wrap=document.getElementById('tableWrap');
+      if(allRecords.length===0){ empty.style.display='block'; wrap.style.display='none'; return; }
+      empty.style.display='none'; wrap.style.display='block';
+      document.getElementById('tblBody').innerHTML=buildTableRowsHtml(allRecords);
     }
 
-    async function loadRecords(){
-      try{
-        var j=await apiListVisits('2020-01-01',todayJstYmd());
-        if(j.ok&&j.visits){ allRecords=j.visits; renderRecordsTable(); }
-        else document.getElementById('recEmpty').style.display='block';
-      }catch(e){ document.getElementById('recEmpty').style.display='block'; }
+    function renderDashLatest(){
+      var sorted=dashRecords.slice().sort(function(a,b){
+        var da=String(a.visit_date||'').slice(0,10);
+        var db=String(b.visit_date||'').slice(0,10);
+        if(da!==db) return da>db?-1:1;
+        return String(a.time_start||'')>String(b.time_start||'')?-1:1;
+      });
+      var latest=sorted.length>0?[sorted[0]]:[];
+      var empty=document.getElementById('dashLatestEmpty');
+      var wrap=document.getElementById('dashLatestWrap');
+      if(latest.length===0){ empty.style.display='block'; wrap.style.display='none'; return; }
+      empty.style.display='none'; wrap.style.display='block';
+      document.getElementById('dashLatestBody').innerHTML=buildTableRowsHtml(latest);
     }
 
-    // ---- New record ----
-    document.getElementById('btnNew').addEventListener('click',async function(){
-      var btn=this; btn.disabled=true;
-      try{
-        var startHm=nowJstHm();
-        var endHm=addMinutes(startHm,90);
-        var r=await apiSaveVisit({visit_date:todayJstYmd(),time_start:startHm,time_end:endHm,okuri:false,mukae:false});
-        if(r.error) throw new Error(r.error);
-        var saved=r.visit;
-        var idx=allRecords.findIndex(function(v){ return v.id===saved.id; });
-        if(idx>=0) allRecords[idx]=saved; else allRecords.push(saved);
-        dashLoaded=false;
-        renderRecordsTable();
-      }catch(e){ alert('エラー: '+(e.message||e)); }
-      btn.disabled=false;
-    });
-
-    // ---- Dashboard month selector ----
-    function buildMonthOptions(){
-      var sel=document.getElementById('monthSel');
-      if(sel.options.length>0) return;
-      var html='<option value="30days">直近30日</option>';
-      var now=new Date();
-      var curY=now.getFullYear(), curM=now.getMonth()+1;
-      var y=2026, m=4;
-      while(y<curY||(y===curY&&m<=curM)){
-        var val=y+'-'+String(m).padStart(2,'0');
-        html+='<option value="'+val+'">'+y+'年'+m+'月</option>';
-        m++; if(m>12){m=1;y++;}
-      }
-      sel.innerHTML=html;
-      sel.value=dashMode;
-    }
-    document.getElementById('monthSel').addEventListener('change',function(){
-      dashMode=this.value;
-      dashLoaded=false;
-      document.getElementById('dashCards').innerHTML='';
-      document.getElementById('dashEmpty').style.display='none';
-      loadDashboard();
-    });
-
-    // ---- Dashboard ----
-    async function loadDashboard(){
-      buildMonthOptions();
-      if(dashLoaded) return;
-      var from, to;
-      if(dashMode==='30days'){
-        to=todayJstYmd();
-        from=(function(){
-          var p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()-30*86400000));
-          var y='',m='',d=''; p.forEach(function(x){ if(x.type==='year')y=x.value; if(x.type==='month')m=x.value; if(x.type==='day')d=x.value; });
-          return y+'-'+m+'-'+d;
-        })();
-        document.getElementById('dashTitle').textContent='直近30日';
-      } else {
-        var pts=dashMode.split('-');
-        var yr=parseInt(pts[0]), mo=parseInt(pts[1]);
-        from=dashMode+'-01';
-        to=dashMode+'-'+String(new Date(yr,mo,0).getDate()).padStart(2,'0');
-        document.getElementById('dashTitle').textContent=yr+'年'+mo+'月';
-      }
-      var j; try{ j=await apiListVisits(from,to); }catch(e){ document.getElementById('dashEmpty').style.display='block'; return; }
-      if(j.error||!j.ok||!j.visits||!j.visits.length){ document.getElementById('dashEmpty').style.display='block'; return; }
-      dashLoaded=true;
-      var rows=j.visits, n=rows.length, sumStay=0, stayCnt=0, sumAero=0, sumTr1=0, sumTr2=0, clubCnt=0, okuriCnt=0, mukaeCnt=0;
+    function renderDashCards(){
+      var rows=dashRecords;
+      var n=rows.length;
+      var cardsEl=document.getElementById('dashCards');
+      var emptyEl=document.getElementById('dashEmpty');
+      var titleEl=document.getElementById('dashTitle');
+      if(n===0){ titleEl.style.display='none'; emptyEl.style.display='block'; cardsEl.innerHTML=''; return; }
+      emptyEl.style.display='none';
+      var label=dashMode==='30days'?'直近30日':(function(){ var p=dashMode.split('-'); return parseInt(p[0])+'年'+parseInt(p[1])+'月'; })();
+      titleEl.textContent=label; titleEl.style.display='';
+      var sumStay=0,stayCnt=0,sumAero=0,sumTr1=0,sumTr2=0,clubCnt=0,okuriCnt=0,mukaeCnt=0;
       rows.forEach(function(v){
         var s=minutesBetween(v.time_start,v.time_end,String(v.visit_date||'').slice(0,10));
         if(typeof s==='number'){ sumStay+=s; stayCnt++; }
@@ -605,50 +489,225 @@
       var avgStay=stayCnt?Math.round(sumStay/stayCnt):0;
       var perGym=n?(8758/n):9999;
       var perClub=clubCnt?(1650/clubCnt):9999;
-
-      var crowdRows = rows.map(function(v){
+      var crowdRows=rows.map(function(v){
         var t=(parseInt(v.aerobic_minutes,10)||0)+(parseInt(v.tr1_people,10)||0)+(parseInt(v.tr2_people,10)||0);
-        return {rec:v, total:t};
-      }).filter(function(item){ return item.total > 0; });
-      crowdRows.sort(function(a,b){ return b.total - a.total; });
-      
-      var crowdCards = '';
-      for(var i=0; i<3 && i<crowdRows.length; i++){
-        var item = crowdRows[i];
-        var v = item.rec;
-        var ymd = String(v.visit_date||'').slice(0,10);
-        var dow = ymd ? '日月火水木金土'[new Date(ymd+'T00:00:00+09:00').getDay()] : '';
-        var tStr = (v.time_start||'--:--') + '-' + (v.time_end||'--:--');
-        var aero = parseInt(v.aerobic_minutes,10)||0;
-        var tr1 = parseInt(v.tr1_people,10)||0;
-        var tr2 = parseInt(v.tr2_people,10)||0;
-        var subText = '計'+item.total+'人(有'+aero+'/T1:'+tr1+'/T2:'+tr2+')';
-        crowdCards += card('混雑 Best ' + (i+1), dow + ' ' + tStr, 'dc-amber', subText);
+        return {rec:v,total:t};
+      }).filter(function(item){ return item.total>0; });
+      crowdRows.sort(function(a,b){ return b.total-a.total; });
+      var crowdCards='';
+      for(var ci=0;ci<3&&ci<crowdRows.length;ci++){
+        var item=crowdRows[ci];
+        var cv=item.rec;
+        var cymd=String(cv.visit_date||'').slice(0,10);
+        var cdow=cymd?'日月火水木金土'[new Date(cymd+'T00:00:00+09:00').getDay()]:'';
+        var ctStr=(cv.time_start||'--:--')+'-'+(cv.time_end||'--:--');
+        var caero=parseInt(cv.aerobic_minutes,10)||0;
+        var ctr1=parseInt(cv.tr1_people,10)||0;
+        var ctr2=parseInt(cv.tr2_people,10)||0;
+        crowdCards+=card('混雑 Best '+(ci+1),cdow+' '+ctStr,'dc-amber','計'+item.total+'人(有'+caero+'/T1:'+ctr1+'/T2:'+ctr2+')');
       }
-      var crowdHtml = crowdCards ? row(crowdCards) : '';
-
-      document.getElementById('dashEmpty').style.display='none';
-      document.getElementById('dashCards').innerHTML=
-        row(
-          card('記録数',n+'回','dc-blue')+
-          card('Club利用数',clubCnt+'回','dc-blue')+
-          card('送迎回数',sougenTotal+'回','dc-blue')
-        )+
-        row(
-          card('1回当たり',n?'¥'+Math.round(8758/n).toLocaleString('ja-JP'):'-','dc-green','月額8758円', perGym < 600)+
-          card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green','月額1650円', perClub < 420)+
-          card('JY交通費節約','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green','片道500円', savingAmt > 8758)
-        )+
+      cardsEl.innerHTML=
+        row(card('記録数',n+'回','dc-blue')+card('Club利用数',clubCnt+'回','dc-blue')+card('送迎回数',sougenTotal+'回','dc-blue'))+
+        row(card('1回当たり',n?'¥'+Math.round(8758/n).toLocaleString('ja-JP'):'-','dc-green','月額8758円',perGym<600)+card('Club 1回',clubCnt?'¥'+Math.round(1650/clubCnt).toLocaleString('ja-JP'):'-','dc-green','月額1650円',perClub<420)+card('JY交通費節約','¥'+savingAmt.toLocaleString('ja-JP'),'dc-green','片道500円',savingAmt>8758))+
         row(card('滞在合計',sumStay+'分','dc-purple')+card('平均滞在',avgStay+'分','dc-purple'))+
         row(card('有酸素平均',(sumAero/n).toFixed(1)+'人','dc-amber')+card('TR1 平均',(sumTr1/n).toFixed(1)+'人','dc-amber')+card('TR2 平均',(sumTr2/n).toFixed(1)+'人','dc-amber'))+
-        crowdHtml;
+        (crowdCards?row(crowdCards):'');
     }
+
+    function renderDashMonthTable(){
+      var emptyEl=document.getElementById('dashMonthEmpty');
+      var wrapEl=document.getElementById('dashMonthTableWrap');
+      var titleEl=document.getElementById('dashMonthTableTitle');
+      if(dashRecords.length===0){ titleEl.style.display='none'; emptyEl.style.display='block'; wrapEl.style.display='none'; return; }
+      var label=dashMode==='30days'?'直近30日の記録':(function(){ var p=dashMode.split('-'); return parseInt(p[0])+'年'+parseInt(p[1])+'月の記録'; })();
+      titleEl.textContent=label; titleEl.style.display='';
+      emptyEl.style.display='none'; wrapEl.style.display='block';
+      document.getElementById('dashMonthBody').innerHTML=buildTableRowsHtml(dashRecords);
+    }
+
+    // ---- Shared table click handler ----
+    async function handleTableBodyClick(e){
+      var el=e.target.closest('[data-action]');
+      if(!el) return;
+      var action=el.dataset.action;
+      var id=el.dataset.id;
+      if(savingSet.has(id)) return;
+
+      if(action==='delete'){
+        if(!confirm('この記録を削除しますか？')) return;
+        el.disabled=true;
+        try{
+          var r=await apiDeleteVisit(id);
+          if(r.error) throw new Error(r.error);
+          var di=dashRecords.findIndex(function(v){ return v.id===id; });
+          var ri=allRecords.findIndex(function(v){ return v.id===id; });
+          if(di>=0) dashRecords.splice(di,1);
+          if(ri>=0) allRecords.splice(ri,1);
+          renderDashLatest(); renderDashCards(); renderDashMonthTable();
+          if(recordsLoaded) renderRecordsTable();
+        }catch(ex){ alert('削除エラー: '+String(ex.message||ex)); el.disabled=false; }
+        return;
+      }
+
+      var rec=dashRecords.find(function(v){ return v.id===id; })||allRecords.find(function(v){ return v.id===id; });
+      if(!rec) return;
+
+      if(action==='toggle-club'){
+        await saveField(id,'club',!rec.club);
+        return;
+      }
+      if(action==='toggle-okuri'||action==='toggle-mukae'){
+        var field=action==='toggle-okuri'?'okuri':'mukae';
+        await saveField(id,field,!rec[field]);
+        return;
+      }
+      if(action==='edit'){
+        var field=el.dataset.field;
+        var newVal=null;
+        if(field==='visit_date')           newVal=await popupDate(rec.visit_date);
+        else if(field==='time_start')      newVal=await popupTime('開始時刻',rec.time_start||nowJstHm());
+        else if(field==='time_end')        newVal=await popupTime('終了時刻',rec.time_end||addMinutes(rec.time_start||nowJstHm(),90));
+        else if(field==='aerobic_minutes') newVal=await popupCount('有酸素人数',rec.aerobic_minutes||0);
+        else if(field==='tr1_people')      newVal=await popupCount('TR1 人数',rec.tr1_people||0);
+        else if(field==='tr2_people')      newVal=await popupCount('TR2 人数',rec.tr2_people||0);
+        else if(field==='club')            newVal=await popupClub(rec.club||false);
+        if(newVal===null) return;
+        await saveField(id,field,newVal);
+      }
+    }
+    document.getElementById('tblBody').addEventListener('click',handleTableBodyClick);
+    document.getElementById('dashLatestBody').addEventListener('click',handleTableBodyClick);
+    document.getElementById('dashMonthBody').addEventListener('click',handleTableBodyClick);
+
+    // ---- saveField (updates both dashRecords and allRecords) ----
+    async function saveField(id, field, newVal){
+      var di=dashRecords.findIndex(function(v){ return v.id===id; });
+      var ri=allRecords.findIndex(function(v){ return v.id===id; });
+      if(di<0&&ri<0) return;
+      var src=di>=0?dashRecords[di]:allRecords[ri];
+      var prev=Object.assign({},src);
+      var upd=Object.assign({},prev); upd[field]=newVal;
+      if(di>=0) dashRecords[di]=upd;
+      if(ri>=0) allRecords[ri]=upd;
+      savingSet.add(id);
+      renderDashLatest(); renderDashCards(); renderDashMonthTable();
+      if(recordsLoaded) renderRecordsTable();
+      try{
+        var r=await apiSaveVisit({
+          id:upd.id, visit_date:upd.visit_date,
+          time_start:upd.time_start||'', time_end:upd.time_end||'',
+          aerobic_minutes:upd.aerobic_minutes||0,
+          tr1_people:upd.tr1_people||0, tr2_people:upd.tr2_people||0,
+          club:upd.club||false, okuri:upd.okuri||false, mukae:upd.mukae||false,
+        });
+        if(r.error) throw new Error(r.error);
+        var saved=Object.assign({},r.visit,{club:r.visit.club===true,okuri:r.visit.okuri===true,mukae:r.visit.mukae===true});
+        if(di>=0) dashRecords[di]=saved;
+        if(ri>=0) allRecords[ri]=saved;
+      }catch(e){
+        if(di>=0) dashRecords[di]=prev;
+        if(ri>=0) allRecords[ri]=prev;
+        alert('保存エラー: '+(e.message||e));
+      }finally{
+        savingSet.delete(id);
+        renderDashLatest(); renderDashCards(); renderDashMonthTable();
+        if(recordsLoaded) renderRecordsTable();
+      }
+    }
+
+    // ---- Load records (lazy) ----
+    async function loadRecords(){
+      try{
+        var j=await apiListVisits('2020-01-01',todayJstYmd());
+        if(j.ok&&j.visits) allRecords=j.visits;
+        recordsLoaded=true;
+        renderRecordsTable();
+      }catch(e){ document.getElementById('recEmpty').style.display='block'; }
+    }
+
+    // ---- Dashboard month selector ----
+    function buildMonthOptions(){
+      var sel=document.getElementById('monthSel');
+      if(sel.options.length>0) return;
+      var html='<option value="30days">直近30日</option>';
+      var now=new Date();
+      var curY=now.getFullYear(), curM=now.getMonth()+1;
+      var y=2026, m=4;
+      while(y<curY||(y===curY&&m<=curM)){
+        var val=y+'-'+String(m).padStart(2,'0');
+        html+='<option value="'+val+'">'+y+'年'+m+'月</option>';
+        m++; if(m>12){m=1;y++;}
+      }
+      sel.innerHTML=html;
+      sel.value=dashMode;
+    }
+    document.getElementById('monthSel').addEventListener('change',function(){
+      dashMode=this.value;
+      dashLoaded=false;
+      dashRecords=[];
+      renderDashLatest(); renderDashCards(); renderDashMonthTable();
+      loadDashboard();
+    });
+
+    // ---- Load dashboard ----
+    async function loadDashboard(){
+      buildMonthOptions();
+      if(dashLoaded) return;
+      var from, to;
+      if(dashMode==='30days'){
+        to=todayJstYmd();
+        from=(function(){
+          var p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(Date.now()-30*86400000));
+          var y='',m='',d=''; p.forEach(function(x){ if(x.type==='year')y=x.value; if(x.type==='month')m=x.value; if(x.type==='day')d=x.value; });
+          return y+'-'+m+'-'+d;
+        })();
+      } else {
+        var pts=dashMode.split('-');
+        var yr=parseInt(pts[0]), mo=parseInt(pts[1]);
+        from=dashMode+'-01';
+        to=dashMode+'-'+String(new Date(yr,mo,0).getDate()).padStart(2,'0');
+      }
+      var j; try{ j=await apiListVisits(from,to); }catch(e){ document.getElementById('dashEmpty').style.display='block'; return; }
+      if(j.error||!j.ok){ document.getElementById('dashEmpty').style.display='block'; return; }
+      dashLoaded=true;
+      dashRecords=j.visits||[];
+      renderDashLatest();
+      renderDashCards();
+      renderDashMonthTable();
+    }
+
+    // ---- New record ----
+    document.getElementById('btnNew').addEventListener('click',async function(){
+      var btn=this; btn.disabled=true;
+      try{
+        var startHm=nowJstHm();
+        var endHm=addMinutes(startHm,90);
+        var r=await apiSaveVisit({visit_date:todayJstYmd(),time_start:startHm,time_end:endHm,okuri:false,mukae:false});
+        if(r.error) throw new Error(r.error);
+        var saved=r.visit;
+        // Switch to current month if needed
+        var curM=currentYM();
+        if(dashMode!==curM){
+          dashMode=curM;
+          document.getElementById('monthSel').value=curM;
+          dashLoaded=false; dashRecords=[];
+        }
+        var di=dashRecords.findIndex(function(v){ return v.id===saved.id; });
+        if(di>=0) dashRecords[di]=saved; else dashRecords.push(saved);
+        if(recordsLoaded){
+          var ri=allRecords.findIndex(function(v){ return v.id===saved.id; });
+          if(ri>=0) allRecords[ri]=saved; else allRecords.push(saved);
+          renderRecordsTable();
+        }
+        renderDashLatest(); renderDashCards(); renderDashMonthTable();
+      }catch(e){ alert('エラー: '+(e.message||e)); }
+      btn.disabled=false;
+    });
 
     // ---- ToDo ----
     var allTodos=[];
     var todoLoaded=false;
     var todoSavingSet=new Set();
-
     async function apiListTodos(){
       return (await fetchWithAuth('api/todos')).json();
     }
@@ -665,7 +724,6 @@
     async function apiDeleteTodo(id){
       return (await fetch(apiUrl('api/todos/delete')+authQ()+'&id='+encodeURIComponent(id))).json();
     }
-
     function renderTodos(){
       var undone=allTodos.filter(function(t){ return !t.done; }).sort(function(a,b){ return String(a.created_at)<String(b.created_at)?-1:1; });
       var done=allTodos.filter(function(t){ return t.done; }).sort(function(a,b){ return String(a.created_at)<String(b.created_at)?-1:1; });
@@ -693,7 +751,6 @@
       });
       el.innerHTML=html;
     }
-
     async function loadTodos(){
       if(todoLoaded) return;
       try{
@@ -703,7 +760,6 @@
         renderTodos();
       }catch(e){ document.getElementById('todoEmpty').style.display='block'; }
     }
-
     document.getElementById('todoList').addEventListener('click',async function(e){
       var tg=e.target.closest('[data-todo-toggle]');
       if(tg){
@@ -745,12 +801,10 @@
         }
       }
     });
-
     var _todoAddMode=false;
     document.getElementById('btnTodoAdd').addEventListener('click',function(){
       if(_todoAddMode) return;
       _todoAddMode=true;
-      var addBtn=document.getElementById('btnTodoAdd');
       var row=document.createElement('div');
       row.className='todo-add-row';
       row.innerHTML='<input class="todo-add-input" id="todoNewInput" placeholder="やること…" maxlength="200"><button class="todo-add-ok" id="todoNewOk">追加</button>';
@@ -797,7 +851,7 @@
         var me=await apiMe();
         if(!me.ok||!me.access_granted){ setMeta('この LINE アカウントは未許可です'); return; }
         setMeta('接続済み · '+todayJstYmd());
-        loadRecords();
+        loadDashboard();
       }catch(e){
         setMeta('初期化エラー: '+String((e&&e.message)?e.message:e||'').trim());
       }
