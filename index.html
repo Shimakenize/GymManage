@@ -295,7 +295,7 @@
     var savingSet=new Set();
     var recordsLoaded=false;
     var dashLoaded=false;
-    var dashMode=currentYM();
+    var dashMode='30days';
 
     // ---- Tab switching ----
     function switchView(name){
@@ -464,7 +464,7 @@
       var cardsEl=document.getElementById('dashCards');
       var emptyEl=document.getElementById('dashEmpty');
       var titleEl=document.getElementById('dashTitle');
-      if(n===0){ titleEl.style.display='none'; emptyEl.style.display='block'; cardsEl.innerHTML=''; return; }
+      if(n===0){ titleEl.style.display='none'; emptyEl.textContent='データがありません'; emptyEl.style.display='block'; cardsEl.innerHTML=''; return; }
       emptyEl.style.display='none';
       var label=dashMode==='30days'?'直近30日':(function(){ var p=dashMode.split('-'); return parseInt(p[0])+'年'+parseInt(p[1])+'月'; })();
       titleEl.textContent=label; titleEl.style.display='';
@@ -632,7 +632,7 @@
       var html='<option value="30days">直近30日</option>';
       var now=new Date();
       var curY=now.getFullYear(), curM=now.getMonth()+1;
-      var y=2026, m=4;
+      var y=2026, m=1;
       while(y<curY||(y===curY&&m<=curM)){
         var val=y+'-'+String(m).padStart(2,'0');
         html+='<option value="'+val+'">'+y+'年'+m+'月</option>';
@@ -667,8 +667,9 @@
         from=dashMode+'-01';
         to=dashMode+'-'+String(new Date(yr,mo,0).getDate()).padStart(2,'0');
       }
-      var j; try{ j=await apiListVisits(from,to); }catch(e){ document.getElementById('dashEmpty').style.display='block'; return; }
-      if(j.error||!j.ok){ document.getElementById('dashEmpty').style.display='block'; return; }
+      var j; try{ j=await apiListVisits(from,to); }catch(e){ var el=document.getElementById('dashEmpty'); el.textContent='通信エラー: '+String(e.message||e); el.style.display='block'; return; }
+      if(j.error||!j.ok){ var el=document.getElementById('dashEmpty'); el.textContent='APIエラー: '+(j.error||'不明'); el.style.display='block'; return; }
+      document.getElementById('dashEmpty').textContent='データがありません';
       dashLoaded=true;
       dashRecords=j.visits||[];
       renderDashLatest();
