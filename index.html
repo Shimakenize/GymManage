@@ -296,6 +296,7 @@
     var recordsLoaded=false;
     var dashLoaded=false;
     var dashMode='30days';
+    var dashLoadSeq=0;      // increments on each new load; stale responses are discarded
 
     // ---- Tab switching ----
     function switchView(name){
@@ -653,6 +654,7 @@
     async function loadDashboard(){
       buildMonthOptions();
       if(dashLoaded) return;
+      var seq=++dashLoadSeq;
       var from, to;
       if(dashMode==='30days'){
         to=todayJstYmd();
@@ -667,9 +669,25 @@
         from=dashMode+'-01';
         to=dashMode+'-'+String(new Date(yr,mo,0).getDate()).padStart(2,'0');
       }
-      var j; try{ j=await apiListVisits(from,to); }catch(e){ var el=document.getElementById('dashEmpty'); el.textContent='通信エラー: '+String(e.message||e); el.style.display='block'; return; }
-      if(j.error||!j.ok){ var el=document.getElementById('dashEmpty'); el.textContent='APIエラー: '+(j.error||'不明'); el.style.display='block'; return; }
-      document.getElementById('dashEmpty').textContent='データがありません';
+      var j;
+      try{ j=await apiListVisits(from,to); }
+      catch(e){
+        if(seq!==dashLoadSeq) return;
+        var el=document.getElementById('dashEmpty');
+        el.textContent='通信エラー: '+String(e.message||e)+' ['+from+'〜'+to+']';
+        el.style.display='block';
+        return;
+      }
+      if(seq!==dashLoadSeq) return;
+      if(j.error||!j.ok){
+        var el=document.getElementById('dashEmpty');
+        el.textContent='APIエラー: '+(j.error||'不明')+' ['+from+'〜'+to+']';
+        el.style.display='block';
+        return;
+      }
+      var cnt=(j.visits||[]).length;
+      console.log('[dash] seq='+seq+' mode='+dashMode+' from='+from+' to='+to+' visits='+cnt);
+      document.getElementById('dashEmpty').textContent='データがありません ['+from+'〜'+to+']';
       dashLoaded=true;
       dashRecords=j.visits||[];
       renderDashLatest();
