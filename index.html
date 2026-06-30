@@ -295,7 +295,7 @@
     var savingSet=new Set();
     var recordsLoaded=false;
     var dashLoaded=false;
-    var dashMode='30days';
+    var dashMode=currentYM();
     var dashLoadSeq=0;      // increments on each new load; stale responses are discarded
 
     // ---- Tab switching ----
@@ -862,7 +862,15 @@
         await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
         var liffId=(window.__LIFF_ID__||'').trim();
         if(!liffId){ setMeta('LIFF_ID 未設定'); return; }
-        await liff.init({liffId:liffId});
+        try {
+          await liff.init({liffId:liffId});
+        } catch(liffErr) {
+          if(String(liffErr.message||'').includes('did not match the expected pattern')) {
+            window.location.replace(location.pathname);
+            return;
+          }
+          throw liffErr;
+        }
         if(!liff.isLoggedIn()){ liff.login({redirectUri:location.href.split('#')[0]}); return; }
         var prof=await liff.getProfile();
         lineUserId=prof.userId;
