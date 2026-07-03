@@ -255,6 +255,26 @@
     function authQ(){
       return IS_DEV?('&dev_token='+encodeURIComponent(DEV_TOKEN)+'&userId=dev-claude'):('&userId='+encodeURIComponent(lineUserId||''));
     }
+    function _isLiffPatternErr(e) {
+      return String(e&&e.message||'').includes('did not match the expected pattern');
+    }
+    function _xhrFetch(url, opts) {
+      return new Promise(function(res, rej) {
+        var xhr = new XMLHttpRequest();
+        xhr.open(opts.method||'GET', url, true);
+        var h = opts.headers||{}; Object.keys(h).forEach(function(k){ xhr.setRequestHeader(k,h[k]); });
+        xhr.onload = function(){ var t=xhr.responseText; res({ok:xhr.status>=200&&xhr.status<300,status:xhr.status,json:function(){return JSON.parse(t);}}); };
+        xhr.onerror = function(){ rej(new Error('network error')); };
+        xhr.timeout = 30000; xhr.ontimeout = function(){ rej(new Error('timeout')); };
+        xhr.send(opts.body||null);
+      });
+    }
+    function _fetchOrXHR(url, opts) {
+      return fetch(url, opts).catch(function(e) {
+        if (_isLiffPatternErr(e)) return _xhrFetch(url, opts);
+        throw e;
+      });
+    }
     async function fetchWithAuth(path, opts) {
       var o=opts||{};
       var method=(o.method||'GET').toUpperCase();
@@ -263,11 +283,11 @@
         b.userId=lineUserId; b._path=path.split('?')[0];
         if(IS_DEV) b.dev_token=DEV_TOKEN;
         o=Object.assign({},o,{body:JSON.stringify(b)});
-        return fetch(window.__API_BASE__,Object.assign({},o,{method:'POST'})).catch(function(){
-          return fetch(apiUrl(path)+authQ(),o);
+        return _fetchOrXHR(window.__API_BASE__,Object.assign({},o,{method:'POST'})).catch(function(){
+          return _fetchOrXHR(apiUrl(path)+authQ(),o);
         });
       }
-      return fetch(apiUrl(path)+authQ(),o);
+      return _fetchOrXHR(apiUrl(path)+authQ(),o);
     }
     async function apiMe(){ return (await fetchWithAuth('auth/me')).json(); }
     async function apiListVisits(from,to){
