@@ -875,6 +875,25 @@
     });
 
     // ---- Init ----
+    /** JWT payload の exp を見るだけ（署名検証はしない）。LIFF はログイン中でも id_token だけ切れることがある。 */
+    function idTokenJwtExpired(token){
+      try{
+        var parts=String(token||'').split('.');
+        if(parts.length<2) return false;
+        var payload=parts[1].replace(/-/g,'+').replace(/_/g,'/');
+        var pad=payload.length%4;
+        if(pad) payload+='===='.slice(0,4-pad);
+        var json=JSON.parse(atob(payload));
+        var exp=json.exp;
+        if(typeof exp!=='number') return false;
+        return exp<Date.now()/1000+45;
+      }catch(e){ return false; }
+    }
+    async function liffLogoutThenLogin(){
+      var uri=location.href.split('#')[0];
+      try{ if(liff.isLoggedIn&&liff.isLoggedIn()&&liff.logout) await liff.logout(); }catch(e){}
+      liff.login({redirectUri:uri});
+    }
     (async function main(){
       try{
         await fetchConfig();
@@ -883,15 +902,24 @@
         var liffId=(window.__LIFF_ID__||'').trim();
         if(!liffId){ setMeta('LIFF_ID 未設定'); return; }
         try {
-          await liff.init({liffId:liffId});
+          await Promise.race([
+            liff.init({liffId:liffId, withLoginOnExternalBrowser:true}),
+            new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('liff.init timeout')); },15000); })
+          ]);
         } catch(liffErr) {
           if(String(liffErr.message||'').includes('did not match the expected pattern')) {
             window.location.replace(location.pathname);
             return;
           }
+          if(String(liffErr.message||'').includes('liff.init timeout')) {
+            setMeta('LINEとの通信がタイムアウトしました。再読み込みしてください。');
+            return;
+          }
           throw liffErr;
         }
         if(!liff.isLoggedIn()){ liff.login({redirectUri:location.href.split('#')[0]}); return; }
+        var idTok=liff.getIDToken&&liff.getIDToken();
+        if(idTok&&idTokenJwtExpired(idTok)){ await liffLogoutThenLogin(); return; }
         var prof=await liff.getProfile();
         lineUserId=prof.userId;
         document.getElementById('headerUser').textContent=prof.displayName||lineUserId;
