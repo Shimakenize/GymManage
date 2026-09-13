@@ -307,6 +307,20 @@
       }
       throw lastErr;
     }
+    // ---- Init diagnostics ----
+    // liff.init タイムアウト等クライアント側でしか起きない不具合は再現が難しいため、
+    // 初期化の各ステップ完了時にGASの client_logs シートへ経過時間を送る（結果は待たない・失敗は無視）。
+    var _initT0 = 0;
+    function _logClient(step, message) {
+      try {
+        var body = {
+          _path: 'api/client_log', userId: lineUserId || '',
+          step: step, elapsed_ms: Date.now() - _initT0, message: message ? String(message).slice(0,300) : '',
+          app_version: window.__APP_VERSION__ || '', deploy_num: window.__DEPLOY_NUM__ || '',
+        };
+        fetch(window.__API_BASE__, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)}).catch(function(){});
+      } catch (e) {}
+    }
     async function fetchWithAuth(path, opts) {
       var o=opts||{};
       var method=(o.method||'GET').toUpperCase();
@@ -963,7 +977,9 @@
       try{ if(liff.isLoggedIn&&liff.isLoggedIn()&&liff.logout) await liff.logout(); }catch(e){}
       liff.login({redirectUri:uri});
     }
+    var LIFF_INIT_TIMEOUT_MS = 20000;
     (async function main(){
+      _initT0 = Date.now();
       try{
         // config 取得と LIFF SDK スクリプトの読み込みは互いに依存しないため並行実行し、
         // 起動時の待ち時間を短縮する（liff.init() には liffId が必要なため、そこだけ待ち合わせる）。
@@ -971,21 +987,25 @@
         var sdkP=loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
         await configP;
         applyVersionLabel();
+        _logClient('config_ok');
         await sdkP;
+        _logClient('sdk_ok');
         var liffId=(window.__LIFF_ID__||'').trim();
         if(!liffId){ setMeta('LIFF_ID 未設定'); return; }
         try {
           await Promise.race([
             liff.init({liffId:liffId, withLoginOnExternalBrowser:true}),
-            new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('liff.init timeout')); },15000); })
+            new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('liff.init timeout')); },LIFF_INIT_TIMEOUT_MS); })
           ]);
+          _logClient('liff_init_ok');
         } catch(liffErr) {
+          _logClient('liff_init_fail', liffErr&&liffErr.message);
           if(String(liffErr.message||'').includes('did not match the expected pattern')) {
             window.location.replace(location.pathname);
             return;
           }
           if(String(liffErr.message||'').includes('liff.init timeout')) {
-            setMeta('LINEとの通信がタイムアウトしました。再読み込みしてください。');
+            setMeta('LINEとの通信がタイムアウトしました('+Math.round((Date.now()-_initT0)/1000)+'秒)。再読み込みしてください。');
             return;
           }
           throw liffErr;
@@ -1001,7 +1021,9 @@
         setMeta('接続済み · '+todayJstYmd());
         loadDashboard();
       }catch(e){
-        setMeta('初期化エラー: '+String((e&&e.message)?e.message:e||'').trim());
+        var _msg=String((e&&e.message)?e.message:e||'').trim();
+        _logClient('init_fail', _msg);
+        setMeta('初期化エラー('+Math.round((Date.now()-_initT0)/1000)+'秒): '+_msg);
       }
     })();
   </script>
