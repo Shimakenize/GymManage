@@ -310,6 +310,10 @@
     // ---- Init diagnostics ----
     // liff.init タイムアウト等クライアント側でしか起きない不具合は再現が難しいため、
     // 初期化の各ステップ完了時にGASの client_logs シートへ経過時間を送る（結果は待たない・失敗は無視）。
+    // navigator.sendBeacon を優先する: LIFF SDK が window.fetch をパッチする実装のため、
+    // fetch() 経由だと fetch 自体が壊れている状況（診断したい状況そのもの）でログ送信も
+    // 道連れで失敗し得る。sendBeacon はブラウザ/OS層で送信されJSのfetch実装に依存しないため、
+    // fetch が詰まっている最中でも記録を残せる。
     var _initT0 = 0;
     function _logClient(step, message) {
       try {
@@ -318,7 +322,9 @@
           step: step, elapsed_ms: Date.now() - _initT0, message: message ? String(message).slice(0,300) : '',
           app_version: window.__APP_VERSION__ || '', deploy_num: window.__DEPLOY_NUM__ || '',
         };
-        fetch(window.__API_BASE__, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body)}).catch(function(){});
+        var payload = JSON.stringify(body);
+        if (navigator.sendBeacon && navigator.sendBeacon(window.__API_BASE__, new Blob([payload], {type:'text/plain;charset=utf-8'}))) return;
+        fetch(window.__API_BASE__, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload}).catch(function(){});
       } catch (e) {}
     }
     async function fetchWithAuth(path, opts) {
@@ -981,14 +987,16 @@
     (async function main(){
       _initT0 = Date.now();
       try{
-        // config 取得と LIFF SDK スクリプトの読み込みは互いに依存しないため並行実行し、
-        // 起動時の待ち時間を短縮する（liff.init() には liffId が必要なため、そこだけ待ち合わせる）。
-        var configP=fetchConfig();
-        var sdkP=loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
-        await configP;
+        // config 取得は必ず LIFF SDK ロードより先に完了させる（v0.5.2で並行実行から逐次に戻した）。
+        // LIFF SDK は window.fetch をパッチする実装のため、config 取得中の fetch() 呼び出しと
+        // SDK のパッチ処理が重なると、パッチ後の fetch が AbortController の signal を尊重せず
+        // 8秒タイムアウトが効かなくなり、LIFF側の内部タイムアウト（数十秒オーダー）まで
+        // ハングしてから失敗する不具合が実機ログ（client_logs, 2026-09-13 13:05 elapsed_ms=53725）
+        // で確認された。config 取得を素の fetch のみで完了させることでこのレースを回避する。
+        await fetchConfig();
         applyVersionLabel();
         _logClient('config_ok');
-        await sdkP;
+        await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
         _logClient('sdk_ok');
         var liffId=(window.__LIFF_ID__||'').trim();
         if(!liffId){ setMeta('LIFF_ID 未設定'); return; }
