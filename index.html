@@ -69,6 +69,9 @@
     /* Date input in popup */
     .popup-date-input { width: 100%; padding: 12px; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 1rem; text-align: center; }
     /* Dashboard */
+    .trend-legend { display: flex; gap: 14px; font-size: 0.72rem; color: #94a3b8; margin-bottom: 6px; }
+    .trend-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+    .trend-chart { margin-bottom: 4px; }
     .dash-top-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
     .month-sel { flex: 1; background: #0b1220; border: 1px solid #2b4258; color: #9ccce6; border-radius: 8px; padding: 5px 8px; font-size: 0.8rem; font-family: inherit; cursor: pointer; }
     .dash-sep { border: none; border-top: 1px solid #1e2d3d; margin: 14px 0 12px; }
@@ -117,6 +120,16 @@
 
   <!-- Dashboard (default) -->
   <main id="viewDash" class="panel">
+    <!-- Monthly trend -->
+    <p class="section-title">月別推移（直近6か月）</p>
+    <div class="trend-legend">
+      <span><i style="background:#2ed3c6"></i>記録数</span>
+      <span><i style="background:#60a5fa"></i>Club利用</span>
+      <span><i style="background:#fbbf24"></i>送迎</span>
+    </div>
+    <div id="trendChart" class="trend-chart"></div>
+    <div id="trendEmpty" class="empty" style="display:none;">データがありません</div>
+    <hr class="dash-sep">
     <div class="dash-top-row">
       <select id="monthSel" class="month-sel"></select>
       <button type="button" class="btn-new" id="btnNew">新規</button>
@@ -754,9 +767,82 @@
       loadDashboard();
     });
 
+    // ---- Monthly trend (records / club / sougen counts, past N months) ----
+    var TREND_MONTHS=6;
+    var trendLoaded=false;
+    function monthsBack(n){
+      var arr=[];
+      var now=new Date();
+      for(var i=n-1;i>=0;i--){
+        var d=new Date(now.getFullYear(),now.getMonth()-i,1);
+        arr.push({ym:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),label:(d.getMonth()+1)+'月'});
+      }
+      return arr;
+    }
+    async function loadMonthlyTrend(){
+      if(trendLoaded) return;
+      var months=monthsBack(TREND_MONTHS);
+      var from=months[0].ym+'-01';
+      var to=todayJstYmd();
+      var agg={};
+      months.forEach(function(mm){ agg[mm.ym]={count:0,club:0,sougen:0}; });
+      try{
+        var j=await apiListVisits(from,to);
+        if(j.ok&&j.visits){
+          j.visits.forEach(function(v){
+            var ym=String(v.visit_date||'').slice(0,7);
+            if(!agg[ym]) return;
+            agg[ym].count++;
+            if(v.club===true) agg[ym].club++;
+            if(v.okuri===true) agg[ym].sougen++;
+            if(v.mukae===true) agg[ym].sougen++;
+          });
+        }
+      }catch(e){
+        document.getElementById('trendChart').innerHTML='';
+        var el=document.getElementById('trendEmpty');
+        el.textContent='通信エラー: '+String(e.message||e);
+        el.style.display='block';
+        return;
+      }
+      trendLoaded=true;
+      renderMonthlyTrend(months,agg);
+    }
+    function renderMonthlyTrend(months,agg){
+      var el=document.getElementById('trendChart');
+      var emptyEl=document.getElementById('trendEmpty');
+      var maxV=0;
+      months.forEach(function(mm){
+        var a=agg[mm.ym];
+        maxV=Math.max(maxV,a.count,a.club,a.sougen);
+      });
+      if(maxV===0){ el.innerHTML=''; emptyEl.textContent='データがありません'; emptyEl.style.display='block'; return; }
+      emptyEl.style.display='none';
+      var slotW=58,barW=14,gap=3,chartH=110,padTop=18,padBottom=20;
+      var w=months.length*slotW;
+      var h=chartH+padTop+padBottom;
+      function barH(v){ return v<=0?0:Math.round((v/maxV)*chartH); }
+      var bars='';
+      months.forEach(function(mm,i){
+        var a=agg[mm.ym];
+        var x0=i*slotW+(slotW-(barW*3+gap*2))/2;
+        var series=[{v:a.count,c:'#2ed3c6'},{v:a.club,c:'#60a5fa'},{v:a.sougen,c:'#fbbf24'}];
+        series.forEach(function(s,si){
+          var bh=barH(s.v);
+          var x=x0+si*(barW+gap);
+          var y=padTop+(chartH-bh);
+          bars+='<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+bh+'" rx="2" fill="'+s.c+'"></rect>';
+          if(s.v>0) bars+='<text x="'+(x+barW/2)+'" y="'+(y-3)+'" text-anchor="middle" font-size="9" fill="#94a3b8">'+s.v+'</text>';
+        });
+        bars+='<text x="'+(i*slotW+slotW/2)+'" y="'+(h-4)+'" text-anchor="middle" font-size="10" fill="#9ccce6">'+esc(mm.label)+'</text>';
+      });
+      el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block;">'+bars+'</svg>';
+    }
+
     // ---- Load dashboard ----
     async function loadDashboard(){
       buildMonthOptions();
+      loadMonthlyTrend();
       if(dashLoaded) return;
       var seq=++dashLoadSeq;
       var from, to;
