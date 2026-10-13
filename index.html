@@ -69,7 +69,11 @@
     /* Date input in popup */
     .popup-date-input { width: 100%; padding: 12px; background: #0b1220; border: 1px solid #2b4258; border-radius: 8px; color: #e5e7eb; font-size: 1rem; text-align: center; }
     /* Dashboard */
-    .trend-legend { display: flex; gap: 14px; font-size: 0.72rem; color: #94a3b8; margin-bottom: 6px; }
+    .trend-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
+    .trend-nav-btn { background: #0b1220; border: 1px solid #2b4258; color: #9ccce6; border-radius: 8px; width: 30px; height: 30px; font-size: 0.9rem; font-family: inherit; cursor: pointer; }
+    .trend-nav-btn:disabled { opacity: 0.35; cursor: default; }
+    .trend-range { font-size: 0.78rem; color: #9ccce6; min-width: 100px; text-align: center; }
+    .trend-legend { display: flex; gap: 14px; font-size: 0.72rem; color: #94a3b8; margin-bottom: 6px; flex-wrap: wrap; }
     .trend-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
     .trend-chart { margin-bottom: 4px; }
     .dash-top-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -121,11 +125,17 @@
   <!-- Dashboard (default) -->
   <main id="viewDash" class="panel">
     <!-- Monthly trend -->
-    <p class="section-title">月別推移（直近6か月）</p>
+    <p class="section-title">月別推移</p>
+    <div class="trend-nav">
+      <button type="button" class="trend-nav-btn" id="trendPrev" aria-label="前の期間">◀</button>
+      <span id="trendRangeLabel" class="trend-range"></span>
+      <button type="button" class="trend-nav-btn" id="trendNext" aria-label="次の期間">▶</button>
+    </div>
     <div class="trend-legend">
       <span><i style="background:#2ed3c6"></i>記録数</span>
       <span><i style="background:#60a5fa"></i>Club利用</span>
       <span><i style="background:#fbbf24"></i>送迎</span>
+      <span><i style="background:#f87171"></i>目標10（送迎・記録数）</span>
     </div>
     <div id="trendChart" class="trend-chart"></div>
     <div id="trendEmpty" class="empty" style="display:none;">データがありません</div>
@@ -769,25 +779,40 @@
 
     // ---- Monthly trend (records / club / sougen counts, past N months) ----
     var TREND_MONTHS=6;
-    var trendLoaded=false;
-    function monthsBack(n){
+    var TREND_TARGET=10;    // 送迎・記録数の目標値
+    var trendOffset=0;      // 0=当月を含む直近6か月。1増えるごとに1か月前へ
+    var trendLoadedOffset=null;
+    var trendLoadSeq=0;
+    function monthsBack(n,offset){
       var arr=[];
       var now=new Date();
       for(var i=n-1;i>=0;i--){
-        var d=new Date(now.getFullYear(),now.getMonth()-i,1);
+        var d=new Date(now.getFullYear(),now.getMonth()-i-offset,1);
         arr.push({ym:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),label:(d.getMonth()+1)+'月'});
       }
       return arr;
     }
+    function renderTrendNav(months){
+      var first=months[0],last=months[months.length-1];
+      document.getElementById('trendRangeLabel').textContent=
+        first.ym.slice(0,4)+'年'+parseInt(first.ym.slice(5),10)+'月〜'+
+        (last.ym.slice(0,4)!==first.ym.slice(0,4)?last.ym.slice(0,4)+'年':'')+parseInt(last.ym.slice(5),10)+'月';
+      document.getElementById('trendNext').disabled=(trendOffset<=0);
+    }
     async function loadMonthlyTrend(){
-      if(trendLoaded) return;
-      var months=monthsBack(TREND_MONTHS);
+      var months=monthsBack(TREND_MONTHS,trendOffset);
+      renderTrendNav(months);
+      if(trendLoadedOffset===trendOffset) return;
+      var seq=++trendLoadSeq;
       var from=months[0].ym+'-01';
-      var to=todayJstYmd();
+      var lastYm=months[months.length-1].ym;
+      var lastY=parseInt(lastYm.slice(0,4),10), lastM=parseInt(lastYm.slice(5),10);
+      var to=lastYm+'-'+String(new Date(lastY,lastM,0).getDate()).padStart(2,'0');
       var agg={};
       months.forEach(function(mm){ agg[mm.ym]={count:0,club:0,sougen:0}; });
       try{
         var j=await apiListVisits(from,to);
+        if(seq!==trendLoadSeq) return;
         if(j.ok&&j.visits){
           j.visits.forEach(function(v){
             var ym=String(v.visit_date||'').slice(0,7);
@@ -799,29 +824,43 @@
           });
         }
       }catch(e){
+        if(seq!==trendLoadSeq) return;
         document.getElementById('trendChart').innerHTML='';
         var el=document.getElementById('trendEmpty');
         el.textContent='通信エラー: '+String(e.message||e);
         el.style.display='block';
         return;
       }
-      trendLoaded=true;
+      trendLoadedOffset=trendOffset;
       renderMonthlyTrend(months,agg);
     }
+    document.getElementById('trendPrev').addEventListener('click',function(){
+      trendOffset++;
+      loadMonthlyTrend();
+    });
+    document.getElementById('trendNext').addEventListener('click',function(){
+      if(trendOffset<=0) return;
+      trendOffset--;
+      loadMonthlyTrend();
+    });
     function renderMonthlyTrend(months,agg){
       var el=document.getElementById('trendChart');
       var emptyEl=document.getElementById('trendEmpty');
-      var maxV=0;
+      var maxV=TREND_TARGET;
       months.forEach(function(mm){
         var a=agg[mm.ym];
         maxV=Math.max(maxV,a.count,a.club,a.sougen);
       });
-      if(maxV===0){ el.innerHTML=''; emptyEl.textContent='データがありません'; emptyEl.style.display='block'; return; }
+      var hasData=months.some(function(mm){ var a=agg[mm.ym]; return a.count>0||a.club>0||a.sougen>0; });
+      if(!hasData){ el.innerHTML=''; emptyEl.textContent='データがありません'; emptyEl.style.display='block'; return; }
       emptyEl.style.display='none';
       var slotW=58,barW=14,gap=3,chartH=110,padTop=18,padBottom=20;
       var w=months.length*slotW;
       var h=chartH+padTop+padBottom;
       function barH(v){ return v<=0?0:Math.round((v/maxV)*chartH); }
+      var targetY=padTop+(chartH-barH(TREND_TARGET));
+      var target='<line x1="0" y1="'+targetY+'" x2="'+w+'" y2="'+targetY+'" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3"></line>'+
+        '<text x="2" y="'+(targetY-3)+'" font-size="9" fill="#f87171">目標'+TREND_TARGET+'</text>';
       var bars='';
       months.forEach(function(mm,i){
         var a=agg[mm.ym];
@@ -836,7 +875,7 @@
         });
         bars+='<text x="'+(i*slotW+slotW/2)+'" y="'+(h-4)+'" text-anchor="middle" font-size="10" fill="#9ccce6">'+esc(mm.label)+'</text>';
       });
-      el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block;">'+bars+'</svg>';
+      el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block;">'+target+bars+'</svg>';
     }
 
     // ---- Load dashboard ----
